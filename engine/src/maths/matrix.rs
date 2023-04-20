@@ -42,6 +42,18 @@ impl Matrix {
     pub fn set_at(&mut self, i: usize, j: usize, value: f64) {
         self.set(i * self.h + j, value)
     }
+
+    pub fn reshape(values: Vec<f64>, w: usize, h: usize)  -> Option<Matrix> {
+        if values.len() != w * h {
+            return None;
+        }
+
+        Some(Matrix {
+            w,
+            h,
+            values
+        })
+    }
 }
 
 impl Add for Matrix {
