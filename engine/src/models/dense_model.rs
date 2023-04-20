@@ -3,7 +3,7 @@ use crate::maths::matrix::Matrix;
 use crate::losses::losses::Loss;
 use crate::shapes::multilayer_shape::MultilayerShape;
 
-pub struct MultilayerPerceptron {
+pub struct DenseModel {
     nb_layers: usize,
     pub loss: Loss,
     activations: Vec<MultilayerActivation>,
@@ -15,9 +15,9 @@ pub struct MultilayerPerceptron {
     values: Vec<Matrix>,
 }
 
-impl MultilayerPerceptron {
+impl DenseModel {
     pub fn new(activations: Vec<MultilayerActivation>, loss: Loss,
-               shape: Vec<MultilayerShape>) -> MultilayerPerceptron {
+               shape: Vec<MultilayerShape>) -> DenseModel {
 
         let mut weights = Vec::with_capacity(shape.len() - 1);
         let mut biases = Matrix::new(shape.len() - 1, 1);
@@ -33,7 +33,7 @@ impl MultilayerPerceptron {
             weights.push(Matrix::random(shape[i].range, shape[i + 1].range));
         }
 
-        MultilayerPerceptron {
+        DenseModel {
             nb_layers: shape.len(),
             loss,
             activations,

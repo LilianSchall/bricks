@@ -1,1 +1,1 @@
-pub mod multilayer_activation;
+pub mod dense_activation;

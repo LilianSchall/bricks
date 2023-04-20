@@ -1,5 +1,5 @@
 use rand::Rng;
-use std::ops::Add;
+use std::ops::{Add, Sub};
 use std::ops::Mul;
 
 pub struct Matrix {
@@ -74,12 +74,37 @@ impl Matrix {
         })
     }
 
+    // compute the transpose of the matrix self
+    pub fn T(&self) -> Matrix {
+        let mut mat = Matrix::new(self.h, self.w);
+        for i in 0..self.h {
+            for j in 0..self.w {
+                mat.set_at(j, i, self.get_at(i, j).unwrap());
+            }
+        }
+        mat
+    }
+
     pub fn sum(&self) -> f64 {
         let mut sum: f64 = 0.0;
         for i in 0..self.len() {
             sum += self.get(i).unwrap();
         }
         sum
+    }
+
+    pub fn hadamard_dot(&self, other: &Matrix) -> Option<Matrix> {
+        if self.w != other.w || self.h != other.h {
+            return None;
+        }
+
+        let mut mat: Matrix = Matrix::new(self.w, self.h);
+
+        for i in 0..self.len() {
+            mat.set(i, self.get(i).unwrap() * other.get(i).unwrap());
+        }
+
+        Some(mat)
     }
 
     pub fn apply_function(&mut self, f: fn(f64) -> f64) -> &Matrix {
@@ -97,43 +122,19 @@ impl Matrix {
     }
 }
 
-impl Add for Matrix {
-    type Output = Option<Matrix>;
-
-    fn add(self, other: Matrix) -> Option<Matrix> {
-        if self.w != other.w || self.h != other.h {
-            return None;
+impl Clone for Matrix {
+    fn clone(&self) -> Self {
+        let size = self.w * self.h;
+        let mut vec = Vec::with_capacity(size);
+        for i in 0..size {
+            vec.push(self.get(i).unwrap());
         }
 
-        let mut mat = Matrix::new(self.w, self.h);
-        for i in 0..self.len() {
-            mat.set(i, self.get(i).unwrap() + other.get(i).unwrap());
+        Matrix {
+            w: self.w,
+            h: self.h,
+            length: size,
+            values: vec,
         }
-
-        Some(mat)
-    }
-}
-
-impl Mul for Matrix {
-    type Output = Option<Matrix>;
-
-    fn mul(self, other: Matrix) -> Option<Matrix> {
-        if self.w != other.h {
-            return None;
-        }
-
-        let mut mat = Matrix::new(other.w, self.h);
-
-        for i in 0..self.h {
-            for j in 0..other.w {
-                let mut buffer: f64 = 0.0;
-                for k in 0..self.w {
-                    buffer += self.get_at(i, k).unwrap() * other.get_at(k, j).unwrap();
-                }
-                mat.set_at(i, j, buffer);
-            }
-        }
-
-        Some(mat)
     }
 }
