@@ -5,11 +5,10 @@ pub struct Matrix {
     pub w: usize,
     pub h: usize,
     pub length: usize,
-    pub values: Vec<f64>
+    pub values: Vec<f64>,
 }
 
 impl Matrix {
-
     pub fn new(w: usize, h: usize) -> Matrix {
         let size = w * h;
         let mut vec = Vec::with_capacity(size);
@@ -21,7 +20,7 @@ impl Matrix {
             w,
             h,
             length: size,
-            values: vec
+            values: vec,
         }
     }
 
@@ -29,7 +28,7 @@ impl Matrix {
         self.length
     }
 
-    pub fn get(&self, i : usize) -> Option<f64> {
+    pub fn get(&self, i: usize) -> Option<f64> {
         if i >= self.len() {
             return None;
         }
@@ -40,7 +39,7 @@ impl Matrix {
         self.get(i * self.h + j)
     }
 
-    pub fn set(&mut self, i : usize, value: f64) {
+    pub fn set(&mut self, i: usize, value: f64) {
         if i < self.len() {
             self.values[i] = value;
         }
@@ -50,8 +49,8 @@ impl Matrix {
         self.set(i * self.h + j, value)
     }
 
-    pub fn reshape(values: Vec<f64>, w: usize, h: usize)  -> Option<Matrix> {
-        let length : usize = w * h;
+    pub fn reshape(values: Vec<f64>, w: usize, h: usize) -> Option<Matrix> {
+        let length: usize = w * h;
         if values.len() != length {
             return None;
         }
@@ -60,8 +59,30 @@ impl Matrix {
             w,
             h,
             length,
-            values
+            values,
         })
+    }
+
+    pub fn sum(&self) -> f64 {
+        let mut sum: f64 = 0.0;
+        for i in 0..self.len() {
+            sum += self.get(i).unwrap();
+        }
+        sum
+    }
+
+    pub fn apply_function(&mut self, f: fn(f64) -> f64) -> &Matrix {
+        for i in 0..self.len() {
+            self.set(i, f(self.get(i).unwrap()));
+        }
+        self
+    }
+
+    pub fn apply_two_param_function<T>(&mut self, f: fn(f64, f64) -> f64, arg: f64) -> &Matrix {
+        for i in 0..self.len() {
+            self.set(i, f(self.get(i).unwrap(), arg));
+        }
+        self
     }
 }
 
@@ -94,7 +115,7 @@ impl Mul for Matrix {
 
         for i in 0..self.h {
             for j in 0..other.w {
-                let mut buffer : f64 = 0.0;
+                let mut buffer: f64 = 0.0;
                 for k in 0..self.w {
                     buffer += self.get_at(i, k).unwrap() * other.get_at(k, j).unwrap();
                 }

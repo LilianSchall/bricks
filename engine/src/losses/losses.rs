@@ -1,7 +1,6 @@
 use std::str::FromStr;
 use crate::maths::matrix::Matrix;
 
-#[derive(strum_macros::Display)]
 pub enum Loss {
     NoLoss,
     CategoricalCrossEntropy,
