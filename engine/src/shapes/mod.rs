@@ -1,1 +1,1 @@
-pub mod multilayer_shape;
+pub mod dense_shape;
