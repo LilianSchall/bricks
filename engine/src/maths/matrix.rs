@@ -1,11 +1,12 @@
+use rand::Rng;
 use std::ops::Add;
 use std::ops::Mul;
 
 pub struct Matrix {
     pub w: usize,
     pub h: usize,
-    pub length: usize,
-    pub values: Vec<f64>,
+    length: usize,
+    values: Vec<f64>,
 }
 
 impl Matrix {
@@ -22,6 +23,16 @@ impl Matrix {
             length: size,
             values: vec,
         }
+    }
+
+    pub fn random(w: usize, h: usize) -> Matrix {
+        let mut mat = Matrix::new(w, h);
+        let mut rng = rand::thread_rng();
+
+        for i in 0..mat.len() {
+            mat.set(i, rng.gen::<f64>())
+        }
+        mat
     }
 
     pub fn len(&self) -> usize {
