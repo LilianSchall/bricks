@@ -4,6 +4,7 @@ use std::ops::Mul;
 pub struct Matrix {
     pub w: usize,
     pub h: usize,
+    pub length: usize,
     pub values: Vec<f64>
 }
 
@@ -19,11 +20,17 @@ impl Matrix {
         Matrix {
             w,
             h,
+            length: size,
             values: vec
         }
     }
+
+    pub fn len(&self) -> usize {
+        self.length
+    }
+
     pub fn get(&self, i : usize) -> Option<f64> {
-        if i >= self.w * self.h {
+        if i >= self.len() {
             return None;
         }
         Some(self.values[i])
@@ -34,7 +41,7 @@ impl Matrix {
     }
 
     pub fn set(&mut self, i : usize, value: f64) {
-        if i < self.w * self.h {
+        if i < self.len() {
             self.values[i] = value;
         }
     }
@@ -44,13 +51,15 @@ impl Matrix {
     }
 
     pub fn reshape(values: Vec<f64>, w: usize, h: usize)  -> Option<Matrix> {
-        if values.len() != w * h {
+        let length : usize = w * h;
+        if values.len() != length {
             return None;
         }
 
         Some(Matrix {
             w,
             h,
+            length,
             values
         })
     }
@@ -65,7 +74,7 @@ impl Add for Matrix {
         }
 
         let mut mat = Matrix::new(self.w, self.h);
-        for i in 0..(self.w * self.h) {
+        for i in 0..self.len() {
             mat.set(i, self.get(i).unwrap() + other.get(i).unwrap());
         }
 
