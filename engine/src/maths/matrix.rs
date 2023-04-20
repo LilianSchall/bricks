@@ -1,3 +1,6 @@
+use std::ops::Add;
+use std::ops::Mul;
+
 pub struct Matrix {
     pub w: usize,
     pub h: usize,
@@ -9,7 +12,7 @@ impl Matrix {
     pub fn new(w: usize, h: usize) -> Matrix {
         let size = w * h;
         let mut vec = Vec::with_capacity(size);
-        for i in 0..size {
+        for _ in 0..size {
             vec.push(0.0);
         }
 
@@ -20,7 +23,7 @@ impl Matrix {
         }
     }
     pub fn get(&self, i : usize) -> Option<f64> {
-        if (i >= self.w * self.h) {
+        if i >= self.w * self.h {
             return None;
         }
         Some(self.values[i])
@@ -31,7 +34,7 @@ impl Matrix {
     }
 
     pub fn set(&mut self, i : usize, value: f64) {
-        if (i < self.w * self.h) {
+        if i < self.w * self.h {
             self.values[i] = value;
         }
     }
@@ -42,5 +45,42 @@ impl Matrix {
 }
 
 impl Add for Matrix {
+    type Output = Option<Matrix>;
 
+    fn add(self, other: Matrix) -> Option<Matrix> {
+        if self.w != other.w || self.h != other.h {
+            return None;
+        }
+
+        let mut mat = Matrix::new(self.w, self.h);
+        for i in 0..(self.w * self.h) {
+            mat.set(i, self.get(i).unwrap() + other.get(i).unwrap());
+        }
+
+        Some(mat)
+    }
+}
+
+impl Mul for Matrix {
+    type Output = Option<Matrix>;
+
+    fn mul(self, other: Matrix) -> Option<Matrix> {
+        if self.w != other.h {
+            return None;
+        }
+
+        let mut mat = Matrix::new(other.w, self.h);
+
+        for i in 0..self.h {
+            for j in 0..other.w {
+                let mut buffer : f64 = 0.0;
+                for k in 0..self.w {
+                    buffer += self.get_at(i, k).unwrap() * other.get_at(k, j).unwrap();
+                }
+                mat.set_at(i, j, buffer);
+            }
+        }
+
+        Some(mat)
+    }
 }
