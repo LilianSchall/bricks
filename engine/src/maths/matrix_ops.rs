@@ -23,7 +23,7 @@ impl Add<f64> for Matrix {
 
     fn add(self, rhs: f64) -> Self::Output {
         let mut mat = self.clone();
-        mat.apply_two_param_function::<f64>(|x, y| { x + y }, rhs);
+        mat.map2::<f64>(|x, y| { x + y }, rhs);
         mat
     }
 }
@@ -41,7 +41,7 @@ impl Add<f64> for &Matrix {
 
     fn add(self, rhs: f64) -> Self::Output {
         let mut mat = self.clone();
-        mat.apply_two_param_function::<f64>(|x, y| { x + y }, rhs);
+        mat.map2::<f64>(|x, y| { x + y }, rhs);
         mat
     }
 }
@@ -54,12 +54,29 @@ impl Add<&Matrix> for f64 {
     }
 }
 
+impl Sub for &Matrix {
+    type Output = Option<Matrix>;
+
+    fn sub(self, other: &Matrix) -> Self::Output {
+        if self.w != other.w || self.h != other.h {
+            return None;
+        }
+
+        let mut mat = Matrix::new(self.w, self.h);
+        for i in 0..self.len() {
+            mat.set(i, self.get(i).unwrap() - other.get(i).unwrap());
+        }
+
+        Some(mat)
+    }
+}
+
 impl Sub<f64> for Matrix {
     type Output = Matrix;
 
     fn sub(self, rhs: f64) -> Self::Output {
         let mut mat = self.clone();
-        mat.apply_two_param_function::<f64>(|x, y| { x - y }, rhs);
+        mat.map2::<f64>(|x, y| { x - y }, rhs);
         mat
     }
 }
@@ -69,7 +86,7 @@ impl Sub<Matrix> for f64 {
 
     fn sub(self, rhs: Matrix) -> Self::Output {
         let mut mat = rhs.clone();
-        mat.apply_two_param_function::<f64>(|x, y| { y - x }, self);
+        mat.map2::<f64>(|x, y| { y - x }, self);
         mat
     }
 }
@@ -79,7 +96,7 @@ impl Sub<f64> for &Matrix {
 
     fn sub(self, rhs: f64) -> Self::Output {
         let mut mat = self.clone();
-        mat.apply_two_param_function::<f64>(|x, y| { x - y }, rhs);
+        mat.map2::<f64>(|x, y| { x - y }, rhs);
         mat
     }
 }
@@ -89,7 +106,7 @@ impl Sub<&Matrix> for f64 {
 
     fn sub(self, rhs: &Matrix) -> Self::Output {
         let mut mat = rhs.clone();
-        mat.apply_two_param_function::<f64>(|x, y| { y - x }, self);
+        mat.map2::<f64>(|x, y| { y - x }, self);
         mat
     }
 }

@@ -1,6 +1,4 @@
 use rand::Rng;
-use std::ops::{Add, Sub};
-use std::ops::Mul;
 
 pub struct Matrix {
     pub w: usize,
@@ -75,7 +73,7 @@ impl Matrix {
     }
 
     // compute the transpose of the matrix self
-    pub fn T(&self) -> Matrix {
+    pub fn t(&self) -> Matrix {
         let mut mat = Matrix::new(self.h, self.w);
         for i in 0..self.h {
             for j in 0..self.w {
@@ -107,16 +105,23 @@ impl Matrix {
         Some(mat)
     }
 
-    pub fn apply_function(&mut self, f: fn(f64) -> f64) -> &Matrix {
+    pub fn map(&mut self, f: fn(f64) -> f64) -> &Matrix {
         for i in 0..self.len() {
             self.set(i, f(self.get(i).unwrap()));
         }
         self
     }
 
-    pub fn apply_two_param_function<T>(&mut self, f: fn(f64, f64) -> f64, arg: f64) -> &Matrix {
+    pub fn map2<T: Copy>(&mut self, f: fn(f64, T) -> f64, arg: T) -> &Matrix {
         for i in 0..self.len() {
             self.set(i, f(self.get(i).unwrap(), arg));
+        }
+        self
+    }
+
+    pub fn map3<T: Copy, U: Copy>(&mut self, f: fn(f64, T, U) -> f64, arg1: T, arg2: U) -> &Matrix {
+        for i in 0..self.len() {
+            self.set(i, f(self.get(i).unwrap(), arg1, arg2));
         }
         self
     }
