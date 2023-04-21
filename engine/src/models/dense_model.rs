@@ -64,6 +64,10 @@ impl DenseModel {
         }
     }
 
+    pub fn value(&self) -> Matrix{
+        self.values[self.nb_layers - 1].clone()
+    }
+
     pub fn online_back_propagate(&self, output: &Matrix) -> Vec<Matrix> {
         let mut deltas: Vec<Matrix> = Vec::with_capacity(self.nb_layers);
         for l in (1..self.nb_layers).rev() {
