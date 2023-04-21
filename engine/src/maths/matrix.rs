@@ -23,6 +23,15 @@ impl Matrix {
         }
     }
 
+    pub fn from(vec: Vec<f64>) -> Matrix {
+        Matrix {
+            w: 1,
+            h: vec.len(),
+            length: vec.len(),
+            values: vec
+        }
+    }
+
     pub fn random(w: usize, h: usize) -> Matrix {
         let mut mat = Matrix::new(w, h);
         let mut rng = rand::thread_rng();

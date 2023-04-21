@@ -1,7 +1,7 @@
 use crate::maths::matrix::Matrix;
 use crate::models::dense_model::DenseModel;
 
-struct Session {
+pub struct Session {
     model: DenseModel,
     training_data: Vec<(Matrix, Matrix)>,
     testing_data: Vec<(Matrix, Matrix)>,
