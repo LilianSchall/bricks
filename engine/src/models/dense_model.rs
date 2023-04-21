@@ -11,7 +11,7 @@ pub struct DenseModel {
     weights: Vec<Matrix>,
 
     // line matrix, represents the bias of the hidden layers and output layer
-    biases: Matrix,
+    biases: Vec<Matrix>,
     raw_values: Vec<Matrix>,
     values: Vec<Matrix>,
     epsilon: f64,
@@ -21,7 +21,7 @@ impl DenseModel {
     pub fn new(activations: Vec<DenseActivation>, loss: Loss,
                shape: Vec<DenseShape>, epsilon: Option<f64>) -> DenseModel {
         let mut weights = Vec::with_capacity(shape.len() - 1);
-        let biases = Matrix::random(shape.len() - 1, 1);
+        let mut biases = Vec::with_capacity(shape.len() - 1);
         let mut values = Vec::with_capacity(shape.len());
         let mut raw_values = Vec::with_capacity(shape.len());
 
@@ -32,6 +32,7 @@ impl DenseModel {
 
         for i in 0..(shape.len() - 1) {
             weights.push(Matrix::random(shape[i].range, shape[i + 1].range));
+            biases.push(Matrix::random(1, shape[i + 1].range));
         }
 
         DenseModel {
@@ -56,7 +57,7 @@ impl DenseModel {
 
         for i in 0..(self.nb_layers - 1) {
             let mut mat = (&self.weights[i] * &self.values[i]).unwrap();
-            mat = mat + self.biases.get(i).unwrap();
+            mat = (&mat + &self.biases[i]).unwrap();
             self.raw_values[i + 1] = mat.clone();
             self.activations[i].apply(&mut mat, self.epsilon);
             self.values[i + 1] = mat;
@@ -65,9 +66,18 @@ impl DenseModel {
 
     pub fn back_propagate(&mut self, output: &Matrix) -> Vec<Matrix> {
         let mut deltas: Vec<Matrix> = Vec::with_capacity(self.nb_layers);
-
         for l in (1..self.nb_layers).rev() {
-
+            let delta : Matrix;
+            let mut d_z = self.raw_values[l].clone();
+            self.activations[l].derivate(&mut d_z, self.epsilon);
+            if l == self.nb_layers - 1 {
+                delta = self.loss.compute_differential_error(&self.values[l], output)
+                    .hadamard_dot(&d_z).unwrap();
+            }
+            else {
+                delta = (&self.weights[l].t() * &deltas[deltas.len() - 1]).unwrap().hadamard_dot(&d_z).unwrap();
+            }
+            deltas.push(delta);
         }
 
         deltas
