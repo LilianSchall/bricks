@@ -64,7 +64,7 @@ impl DenseModel {
         }
     }
 
-    pub fn back_propagate(&mut self, output: &Matrix) -> Vec<Matrix> {
+    pub fn back_propagate(&self, output: &Matrix) -> Vec<Matrix> {
         let mut deltas: Vec<Matrix> = Vec::with_capacity(self.nb_layers);
         for l in (1..self.nb_layers).rev() {
             let delta : Matrix;
@@ -79,7 +79,22 @@ impl DenseModel {
             }
             deltas.push(delta);
         }
-
+        deltas.reverse();
         deltas
+    }
+
+    pub fn update_weights(&mut self, deltas: Vec<Matrix>, learning_rate: f64) {
+        for l in (1..self.nb_layers).rev() {
+            self.biases[l - 1] = (&self.biases[l - 1] - &(&deltas[l - 1] * learning_rate)).unwrap();
+
+            for j in 0..deltas[l - 1].len() {
+                for k in 0..self.values[l - 1].len() {
+                    let a = self.values[l - 1].get(k).unwrap();
+                    let d = deltas[l - 1].get(j).unwrap();
+                    let w = self.weights[l - 1].get_at(j, k).unwrap();
+                    self.weights[l - 1].set_at(j, k , w - learning_rate * (a * d));
+                }
+            }
+        }
     }
 }

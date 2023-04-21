@@ -134,3 +134,13 @@ impl Mul for &Matrix {
         Some(mat)
     }
 }
+
+impl Mul<f64> for &Matrix {
+    type Output = Matrix;
+
+    fn mul(self, rhs: f64) -> Self::Output {
+        let mut mat = self.clone();
+        mat.map2::<f64>(|x, y| { x * y }, rhs);
+        mat
+    }
+}
