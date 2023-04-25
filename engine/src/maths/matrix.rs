@@ -28,7 +28,7 @@ impl Matrix {
             w: 1,
             h: vec.len(),
             length: vec.len(),
-            values: vec
+            values: vec,
         }
     }
 
@@ -53,8 +53,8 @@ impl Matrix {
         Some(self.values[i])
     }
 
-    pub fn get_at(&self, i: usize, j: usize) -> Option<f64> {
-        self.get(i * self.h + j)
+    pub fn get_at(&self, y: usize, x: usize) -> Option<f64> {
+        self.get(y * self.w + x)
     }
 
     pub fn set(&mut self, i: usize, value: f64) {
@@ -63,8 +63,8 @@ impl Matrix {
         }
     }
 
-    pub fn set_at(&mut self, i: usize, j: usize, value: f64) {
-        self.set(i * self.h + j, value)
+    pub fn set_at(&mut self, y: usize, x: usize, value: f64) {
+        self.set(y * self.w + x, value)
     }
 
     pub fn reshape(values: Vec<f64>, w: usize, h: usize) -> Option<Matrix> {
@@ -79,6 +79,19 @@ impl Matrix {
             length,
             values,
         })
+    }
+
+    pub fn print(&self) {
+        for i in  0..self.h {
+            print!("|");
+            for j in 0..self.w {
+                print!("{}", self.get_at(i,j).unwrap());
+                if j != self.w - 1 {
+                    print!(" ")
+                }
+            }
+            println!("|");
+        }
     }
 
     // compute the transpose of the matrix self
@@ -112,6 +125,75 @@ impl Matrix {
         }
 
         Some(mat)
+    }
+
+    pub fn dot(&self, other: &Matrix) -> Option<Matrix> {
+        if self.w != other.h {
+            return None;
+        }
+
+        let mut mat = Matrix::new(other.w, self.h);
+
+        for i in 0..self.h {
+            for j in 0..other.w {
+                let mut buffer: f64 = 0.0;
+                for k in 0..self.w {
+                    buffer += self.get_at(i, k).unwrap() * other.get_at(k, j).unwrap();
+                }
+                mat.set_at(i, j, buffer);
+            }
+        }
+        Some(mat)
+    }
+
+    pub fn plus(&self, other: &Matrix) -> Option<Matrix> {
+        if self.w != other.w || self.h != other.h {
+            return None;
+        }
+
+        let mut mat = Matrix::new(self.w, self.h);
+        for i in 0..self.len() {
+            mat.set(i, self.get(i).unwrap() + other.get(i).unwrap());
+        }
+
+        Some(mat)
+    }
+
+    pub fn minus(&self, other: &Matrix) -> Option<Matrix> {
+        if self.w != other.w || self.h != other.h {
+            return None;
+        }
+
+        let mut mat = Matrix::new(self.w, self.h);
+        for i in 0..self.len() {
+            mat.set(i, self.get(i).unwrap() - other.get(i).unwrap());
+        }
+
+        Some(mat)
+    }
+
+    pub fn plus_scalar(&self, other: f64) -> Matrix {
+        let mut mat = self.clone();
+        mat.map2::<f64>(|x, y| { x + y }, other);
+        mat
+    }
+
+    pub fn minus_scalar_rhs(&self, other: f64) -> Matrix {
+        let mut mat = self.clone();
+        mat.map2::<f64>(|x, y| { x - y }, other);
+        mat
+    }
+
+    pub fn minus_scalar_lhs(&self, other: f64) -> Matrix {
+        let mut mat = self.clone();
+        mat.map2::<f64>(|x, y| { y - x }, other);
+        mat
+    }
+
+    pub fn multiply(&self, other: f64) -> Matrix {
+        let mut mat = self.clone();
+        mat.map2::<f64>(|x, y| { x * y }, other);
+        mat
     }
 
     pub fn map(&mut self, f: fn(f64) -> f64) -> &Matrix {

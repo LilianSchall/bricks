@@ -5,16 +5,7 @@ impl Add for &Matrix {
     type Output = Option<Matrix>;
 
     fn add(self, other: &Matrix) -> Self::Output {
-        if self.w != other.w || self.h != other.h {
-            return None;
-        }
-
-        let mut mat = Matrix::new(self.w, self.h);
-        for i in 0..self.len() {
-            mat.set(i, self.get(i).unwrap() + other.get(i).unwrap());
-        }
-
-        Some(mat)
+        self.plus(other)
     }
 }
 
@@ -22,9 +13,7 @@ impl Add<f64> for Matrix {
     type Output = Matrix;
 
     fn add(self, rhs: f64) -> Self::Output {
-        let mut mat = self.clone();
-        mat.map2::<f64>(|x, y| { x + y }, rhs);
-        mat
+        self.plus_scalar(rhs)
     }
 }
 
@@ -32,7 +21,7 @@ impl Add<Matrix> for f64 {
     type Output = Matrix;
 
     fn add(self, rhs: Matrix) -> Self::Output {
-        rhs + self
+        rhs.plus_scalar(self)
     }
 }
 
@@ -40,9 +29,7 @@ impl Add<f64> for &Matrix {
     type Output = Matrix;
 
     fn add(self, rhs: f64) -> Self::Output {
-        let mut mat = self.clone();
-        mat.map2::<f64>(|x, y| { x + y }, rhs);
-        mat
+        self.plus_scalar(rhs)
     }
 }
 
@@ -50,7 +37,7 @@ impl Add<&Matrix> for f64 {
     type Output = Matrix;
 
     fn add(self, rhs: &Matrix) -> Self::Output {
-        rhs + self
+        rhs.plus_scalar(self)
     }
 }
 
@@ -58,16 +45,7 @@ impl Sub for &Matrix {
     type Output = Option<Matrix>;
 
     fn sub(self, other: &Matrix) -> Self::Output {
-        if self.w != other.w || self.h != other.h {
-            return None;
-        }
-
-        let mut mat = Matrix::new(self.w, self.h);
-        for i in 0..self.len() {
-            mat.set(i, self.get(i).unwrap() - other.get(i).unwrap());
-        }
-
-        Some(mat)
+        self.minus(other)
     }
 }
 
@@ -75,9 +53,7 @@ impl Sub<f64> for Matrix {
     type Output = Matrix;
 
     fn sub(self, rhs: f64) -> Self::Output {
-        let mut mat = self.clone();
-        mat.map2::<f64>(|x, y| { x - y }, rhs);
-        mat
+        self.minus_scalar_rhs(rhs)
     }
 }
 
@@ -85,9 +61,7 @@ impl Sub<Matrix> for f64 {
     type Output = Matrix;
 
     fn sub(self, rhs: Matrix) -> Self::Output {
-        let mut mat = rhs.clone();
-        mat.map2::<f64>(|x, y| { y - x }, self);
-        mat
+        rhs.minus_scalar_lhs(self)
     }
 }
 
@@ -95,9 +69,7 @@ impl Sub<f64> for &Matrix {
     type Output = Matrix;
 
     fn sub(self, rhs: f64) -> Self::Output {
-        let mut mat = self.clone();
-        mat.map2::<f64>(|x, y| { x - y }, rhs);
-        mat
+        self.minus_scalar_rhs(rhs)
     }
 }
 
@@ -105,9 +77,7 @@ impl Sub<&Matrix> for f64 {
     type Output = Matrix;
 
     fn sub(self, rhs: &Matrix) -> Self::Output {
-        let mut mat = rhs.clone();
-        mat.map2::<f64>(|x, y| { y - x }, self);
-        mat
+        rhs.minus_scalar_rhs(self)
     }
 }
 
@@ -115,23 +85,7 @@ impl Mul for &Matrix {
     type Output = Option<Matrix>;
 
     fn mul(self, other: &Matrix) -> Self::Output {
-        if self.w != other.h {
-            return None;
-        }
-
-        let mut mat = Matrix::new(other.w, self.h);
-
-        for i in 0..self.h {
-            for j in 0..other.w {
-                let mut buffer: f64 = 0.0;
-                for k in 0..self.w {
-                    buffer += self.get_at(i, k).unwrap() * other.get_at(k, j).unwrap();
-                }
-                mat.set_at(i, j, buffer);
-            }
-        }
-
-        Some(mat)
+        self.dot(other)
     }
 }
 
@@ -139,8 +93,6 @@ impl Mul<f64> for &Matrix {
     type Output = Matrix;
 
     fn mul(self, rhs: f64) -> Self::Output {
-        let mut mat = self.clone();
-        mat.map2::<f64>(|x, y| { x * y }, rhs);
-        mat
+        self.multiply(rhs)
     }
 }
