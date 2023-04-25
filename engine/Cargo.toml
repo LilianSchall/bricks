@@ -8,3 +8,4 @@ authors = ["s3l4h"]
 
 [dependencies]
 rand = "0.8"
+rayon = "1.3"
