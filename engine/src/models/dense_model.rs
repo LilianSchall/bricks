@@ -73,7 +73,7 @@ impl DenseModel {
         for l in (1..self.nb_layers).rev() {
             let delta : Matrix;
             let mut d_z = self.raw_values[l].clone();
-            self.activations[l].derivate(&mut d_z, self.epsilon);
+            self.activations[l - 1].derivate(&mut d_z, self.epsilon);
             if l == self.nb_layers - 1 {
                 delta = self.loss.compute_differential_error(&self.values[l], output)
                     .hadamard_dot(&d_z).unwrap();

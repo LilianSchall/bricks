@@ -44,9 +44,9 @@ impl Session {
                 let (i, o) : &(Matrix, Matrix) = &self.training_data[i];
 
                 self.model.feed_forward(i);
-                self.model.online_back_propagate(o);
                 let error = self.model.loss.compute_error(&self.model.value(), o);
-                println!("error: {}", error);
+                let deltas = self.model.online_back_propagate(o);
+                self.model.update_weights(deltas, self.learning_rate);
                 error_sum += error;
             }
 
@@ -62,6 +62,10 @@ impl Session {
 
             self.model.feed_forward(i);
             let error = self.model.loss.compute_error(&self.model.value(), o);
+            println!("Output:");
+            self.model.value().print();
+            println!("Expected:");
+            o.print();
             println!("error: {}", error);
         }
     }
