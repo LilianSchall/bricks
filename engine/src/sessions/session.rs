@@ -24,7 +24,7 @@ impl Session {
             testing_data,
             epoch,
             threshold: t,
-            stop_on_threshold
+            stop_on_threshold,
         }
     }
 
@@ -32,16 +32,16 @@ impl Session {
         self.model
     }
 
-    pub fn fit(&mut self) {
+    pub fn fit(&mut self) -> f64 {
         self.train();
-        self.test();
+        self.test()
     }
 
     fn train(&mut self) {
         for _ in 0..self.epoch {
             let mut error_sum: f64 = 0.0;
             for i in 0..self.training_data.len() {
-                let (i, o) : &(Matrix, Matrix) = &self.training_data[i];
+                let (i, o): &(Matrix, Matrix) = &self.training_data[i];
 
                 self.model.feed_forward(i);
                 let error = self.model.loss.compute_error(&self.model.value(), o);
@@ -56,17 +56,15 @@ impl Session {
         }
     }
 
-    fn test(&mut self) {
+    fn test(&mut self) -> f64 {
+        let mut err: f64 = 0.0;
         for i in 0..self.testing_data.len() {
-            let (i, o) : &(Matrix, Matrix) = &self.testing_data[i];
+            let (i, o): &(Matrix, Matrix) = &self.testing_data[i];
 
             self.model.feed_forward(i);
             let error = self.model.loss.compute_error(&self.model.value(), o);
-            println!("Output:");
-            self.model.value().print();
-            println!("Expected:");
-            o.print();
-            println!("error: {}", error);
+            err += error;
         }
+        err
     }
 }
