@@ -1,4 +1,6 @@
 use rand::Rng;
+use crate::maths::{MULTITHREADED};
+use crate::maths::high_freq_computation::{dot_monothreaded, dot_multithreaded};
 
 pub struct Matrix {
     pub w: usize,
@@ -82,10 +84,10 @@ impl Matrix {
     }
 
     pub fn print(&self) {
-        for i in  0..self.h {
+        for i in 0..self.h {
             print!("|");
             for j in 0..self.w {
-                print!("{}", self.get_at(i,j).unwrap());
+                print!("{}", self.get_at(i, j).unwrap());
                 if j != self.w - 1 {
                     print!(" ")
                 }
@@ -132,18 +134,12 @@ impl Matrix {
             return None;
         }
 
-        let mut mat = Matrix::new(other.w, self.h);
+        let result: Vec<f64>;
 
-        for i in 0..self.h {
-            for j in 0..other.w {
-                let mut buffer: f64 = 0.0;
-                for k in 0..self.w {
-                    buffer += self.get_at(i, k).unwrap() * other.get_at(k, j).unwrap();
-                }
-                mat.set_at(i, j, buffer);
-            }
-        }
-        Some(mat)
+        if MULTITHREADED { result = dot_multithreaded(&self.values, &other.values, self.h, self.w, other.w); }
+        else { result = dot_monothreaded(&self.values, &other.values, self.h, self.w, other.w); }
+
+        Matrix::reshape(result, other.w, self.h)
     }
 
     pub fn plus(&self, other: &Matrix) -> Option<Matrix> {
