@@ -10,7 +10,7 @@ use bricks::shapes::dense_shape::DenseShape;
 fn main() {
 
     let activations = vec![DenseActivation::Relu, DenseActivation::Tanh];
-    let shape = vec![DenseShape::new(2,1,1), DenseShape::new(3,1,1), DenseShape::new(1,1,1)];
+    let shape = vec![DenseShape::one_d(2), DenseShape::one_d(3), DenseShape::one_d(1)];
     let mut model = DenseModel::new(activations, Loss::MeanSquaredError, shape, None);
 
     let training_data = vec![

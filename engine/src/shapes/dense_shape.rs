@@ -14,4 +14,8 @@ impl DenseShape {
             range: x * y * z,
         }
     }
+
+    pub fn one_d(d: usize) -> DenseShape {
+        DenseShape::new(d, 1, 1)
+    }
 }
