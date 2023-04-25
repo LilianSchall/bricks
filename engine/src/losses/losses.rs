@@ -65,7 +65,7 @@ fn mean_squared_error(values: &Matrix, expected: &Matrix) -> f64 {
     let mut sum:  f64 = 0.0;
 
     for i in 0..values.len() {
-        sum += (expected.get(i).unwrap() * values.get(i).unwrap()).powi(2);
+        sum += (expected.get(i).unwrap() - values.get(i).unwrap()).powi(2);
     }
 
     sum / (values.len() as f64)
