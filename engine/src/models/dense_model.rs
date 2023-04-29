@@ -1,3 +1,5 @@
+use std::fs;
+use std::str::FromStr;
 use crate::activations::dense_activation::DenseActivation;
 use crate::maths::matrix::Matrix;
 use crate::losses::losses::Loss;
@@ -64,21 +66,20 @@ impl DenseModel {
         }
     }
 
-    pub fn value(&self) -> Matrix{
+    pub fn value(&self) -> Matrix {
         self.values[self.nb_layers - 1].clone()
     }
 
     pub fn online_back_propagate(&self, output: &Matrix) -> Vec<Matrix> {
         let mut deltas: Vec<Matrix> = Vec::with_capacity(self.nb_layers);
         for l in (1..self.nb_layers).rev() {
-            let delta : Matrix;
+            let delta: Matrix;
             let mut d_z = self.raw_values[l].clone();
             self.activations[l - 1].derivate(&mut d_z, self.epsilon);
             if l == self.nb_layers - 1 {
                 delta = self.loss.compute_differential_error(&self.values[l], output)
                     .hadamard_dot(&d_z).unwrap();
-            }
-            else {
+            } else {
                 delta = (&self.weights[l].t() * &deltas[deltas.len() - 1]).unwrap().hadamard_dot(&d_z).unwrap();
             }
             deltas.push(delta);
@@ -96,9 +97,83 @@ impl DenseModel {
                     let a = self.values[l - 1].get(k).unwrap();
                     let d = deltas[l - 1].get(j).unwrap();
                     let w = self.weights[l - 1].get_at(j, k).unwrap();
-                    self.weights[l - 1].set_at(j, k , w - learning_rate * (a * d));
+                    self.weights[l - 1].set_at(j, k, w - learning_rate * (a * d));
                 }
             }
         }
+    }
+
+    pub fn load_model(path: String) -> DenseModel {
+        let mut weights: Vec<Matrix> = vec![];
+        let mut biases: Vec<Matrix> = vec![];
+        let mut activations: Vec<DenseActivation> = vec![];
+        let mut loss: Loss = Loss::CategoricalCrossEntropy;
+
+        let mut shape: Vec<DenseShape> = vec![];
+
+        let contents = fs::read_to_string(path).expect("Loading path is invalid");
+
+        let lines = contents.split("\n").collect::<Vec<_>>();
+        let mut phase: usize = 0;
+        let mut shape_selector: usize = 0;
+        for line in lines {
+            match phase {
+                0 => {
+                    shape = line.split(" ")
+                        .map(|value| DenseShape::one_d(value.parse::<usize>().unwrap()))
+                        .collect::<Vec<_>>();
+                    weights = Vec::with_capacity(shape.len() - 1);
+                    biases = Vec::with_capacity(shape.len() - 1);
+                }
+                1 => activations = line.split(" ")
+                    .map(|value| DenseActivation::from_str(value).unwrap())
+                    .collect::<Vec<DenseActivation>>(),
+                _ => {
+                    if phase % 2 == 0 {
+                        weights.push(Matrix::reshape(
+                            line.split(" ")
+                                .map(|value| value.parse::<f64>().unwrap())
+                                .collect::<Vec<f64>>()
+                            , shape[shape_selector].range
+                            , shape[shape_selector + 1].range)
+                            .unwrap());
+                        shape_selector += 1;
+                    } else {
+                        biases.push(Matrix::reshape(
+                            line.split(" ")
+                                .map(|value| value.parse::<f64>().unwrap())
+                                .collect::<Vec<f64>>()
+                            , 1
+                            , shape[shape_selector].range)
+                            .unwrap());
+                    }
+                }
+            }
+            phase += 1;
+        }
+        let mut values = Vec::with_capacity(shape.len());
+        let mut raw_values = Vec::with_capacity(shape.len());
+
+        for i in 0..shape.len() {
+            values.push(Matrix::new(1, shape[i].range));
+            raw_values.push(Matrix::new(1, shape[i].range));
+        }
+
+        DenseModel {
+            nb_layers: shape.len(),
+            loss,
+            activations,
+            weights,
+            biases,
+            raw_values,
+            values,
+            epsilon: DEFAULT_EPSILON_VALUE,
+        }
+    }
+
+    pub fn save_model(&self, path: String) {
+        let content: String = "".to_string();
+
+        fs::write(path, content).expect("Could not save the model at the given path.");
     }
 }
