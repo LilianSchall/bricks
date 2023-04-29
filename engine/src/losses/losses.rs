@@ -20,6 +20,16 @@ impl FromStr for Loss {
     }
 }
 
+impl ToString for Loss {
+    fn to_string(&self) -> String {
+        match self {
+            Loss::CrossEntropy => "CrossEntropy",
+            Loss::CategoricalCrossEntropy => "CategoricalCrossEntropy",
+            Loss::MeanSquaredError => "MeanSquaredError",
+        }.to_string()
+    }
+}
+
 impl Loss {
 
     pub fn compute_error(&self, values: &Matrix, expected: &Matrix) -> f64 {

@@ -103,7 +103,7 @@ impl DenseModel {
         }
     }
 
-    pub fn load_model(path: String) -> DenseModel {
+    pub fn load_model(path: &str) -> DenseModel {
         let mut weights: Vec<Matrix> = vec![];
         let mut biases: Vec<Matrix> = vec![];
         let mut activations: Vec<DenseActivation> = vec![];
@@ -116,7 +116,14 @@ impl DenseModel {
         let lines = contents.split("\n").collect::<Vec<_>>();
         let mut phase: usize = 0;
         let mut shape_selector: usize = 0;
+        let nb_lines = lines.len();
         for line in lines {
+
+            if phase == nb_lines - 1 {
+                loss = Loss::from_str(line).unwrap();
+                break;
+            }
+
             match phase {
                 0 => {
                     shape = line.split(" ")
@@ -171,7 +178,7 @@ impl DenseModel {
         }
     }
 
-    pub fn save_model(&self, path: String) {
+    pub fn save_model(&self, path: &str) {
         let mut content: String = "".to_owned();
 
         for i in 0..self.values.len() {
@@ -190,6 +197,8 @@ impl DenseModel {
         content.push_str("\n");
 
         concat_weights_and_bias(&mut content, &self.weights, &self.biases);
+        content.push_str("\n");
+        content.push_str(&self.loss.to_string());
 
         fs::write(path, content).expect("Could not save the model at the given path.");
     }

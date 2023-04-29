@@ -9,12 +9,13 @@ pub struct Session {
     epoch: usize,
     threshold: f64,
     stop_on_threshold: bool,
+    verbose: bool,
 }
 
 impl Session {
     pub fn new(model: DenseModel, learning_rate: f64,
                training_data: Vec<(Matrix, Matrix)>, testing_data: Vec<(Matrix, Matrix)>,
-               epoch: usize, threshold: Option<f64>) -> Session {
+               epoch: usize, threshold: Option<f64>, verbose: bool) -> Session {
         let t = threshold.unwrap_or(0.0);
         let stop_on_threshold = t == 0.0;
         Session {
@@ -25,6 +26,7 @@ impl Session {
             epoch,
             threshold: t,
             stop_on_threshold,
+            verbose,
         }
     }
 
@@ -56,7 +58,7 @@ impl Session {
         }
     }
 
-    fn test(&mut self) -> f64 {
+    pub fn test(&mut self) -> f64 {
         let mut err: f64 = 0.0;
         for i in 0..self.testing_data.len() {
             let (i, o): &(Matrix, Matrix) = &self.testing_data[i];
@@ -64,7 +66,18 @@ impl Session {
             self.model.feed_forward(i);
             let error = self.model.loss.compute_error(&self.model.value(), o);
             err += error;
+            if self.verbose {
+                print_error_output_expected(error, o, &self.model.value());
+            }
         }
         err
     }
+}
+
+fn print_error_output_expected(error: f64, expected: &Matrix, output: &Matrix) {
+    println!("Expected:");
+    expected.print();
+    println!("Output:");
+    output.print();
+    println!("Error rate: {}", error);
 }
