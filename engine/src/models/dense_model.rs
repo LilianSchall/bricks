@@ -172,8 +172,37 @@ impl DenseModel {
     }
 
     pub fn save_model(&self, path: String) {
-        let content: String = "".to_string();
+        let mut content: String = "".to_owned();
+
+        for i in 0..self.values.len() {
+            if i != 0 {
+                content.push_str(" ");
+            }
+            content.push_str(self.values[i].h.to_string().as_str());
+        }
+        content.push_str("\n");
+        for i in 0..self.activations.len() {
+            if i != 0 {
+                content.push_str(" ");
+            }
+            content.push_str(self.activations[i].to_string().as_str());
+        }
+        content.push_str("\n");
+
+        concat_weights_and_bias(&mut content, &self.weights, &self.biases);
 
         fs::write(path, content).expect("Could not save the model at the given path.");
+    }
+
+}
+
+fn concat_weights_and_bias(c: &mut String, weights: &Vec<Matrix>, biases: &Vec<Matrix>) {
+    for i in 0..weights.len() {
+        if i != 0 {
+            c.push_str("\n");
+        }
+        c.push_str(&weights[i].to_string());
+        c.push_str("\n");
+        c.push_str(&biases[i].to_string());
     }
 }

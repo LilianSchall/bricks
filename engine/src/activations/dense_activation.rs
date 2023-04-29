@@ -25,6 +25,18 @@ impl FromStr for DenseActivation {
     }
 }
 
+impl ToString for DenseActivation {
+    fn to_string(&self) -> String {
+        match self {
+            DenseActivation::Sigmoid => "Sigmoid",
+            DenseActivation::Relu => "Relu",
+            DenseActivation::LeakyRelu => "LeakyRelu",
+            DenseActivation::Softmax => "Softmax",
+            DenseActivation::Tanh => "Tanh",
+        }.to_string()
+    }
+}
+
 impl DenseActivation {
     pub fn apply(&self, mat: &mut Matrix, epsilon: f64) {
         match self {

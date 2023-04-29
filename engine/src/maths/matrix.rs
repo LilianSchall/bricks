@@ -230,3 +230,16 @@ impl Clone for Matrix {
         }
     }
 }
+
+impl ToString for Matrix {
+    fn to_string(&self) -> String {
+        let mut content = "".to_owned();
+        for i in 0..self.len() {
+            if i != 0 {
+                content.push_str(" ");
+            }
+            content.push_str(self.get(i).unwrap().to_string().as_str());
+        }
+        return content;
+    }
+}
