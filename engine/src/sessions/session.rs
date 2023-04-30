@@ -1,5 +1,5 @@
-use crate::maths::matrix::Matrix;
-use crate::models::dense_model::DenseModel;
+use crate::maths::Matrix;
+use crate::models::DenseModel;
 
 pub struct Session {
     model: DenseModel,

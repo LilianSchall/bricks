@@ -1,10 +1,10 @@
 use std::fs;
 use std::str::FromStr;
-use crate::activations::dense_activation::DenseActivation;
-use crate::maths::matrix::Matrix;
-use crate::losses::losses::Loss;
+use crate::activations::DenseActivation;
+use crate::maths::Matrix;
+use crate::losses::Loss;
 use crate::models::DEFAULT_EPSILON_VALUE;
-use crate::shapes::dense_shape::DenseShape;
+use crate::shapes::DenseShape;
 
 pub struct DenseModel {
     nb_layers: usize,

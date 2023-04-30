@@ -1,6 +1,6 @@
 use std::str::FromStr;
 use crate::maths::activation::{dleaky_relu, drelu, dsigmoid, dtanh, leaky_relu, relu, sigmoid, tanh};
-use crate::maths::matrix::Matrix;
+use crate::maths::Matrix;
 
 pub enum DenseActivation {
     Sigmoid,

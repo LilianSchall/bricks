@@ -1,7 +1,7 @@
 use std::collections::VecDeque;
 use std::fs;
-use crate::maths::matrix::Matrix;
-use crate::shapes::dense_shape::DenseShape;
+use crate::maths::Matrix;
+use crate::shapes::DenseShape;
 
 pub fn load_data(path: &str) -> Vec<(Matrix, Matrix)> {
     let contents = fs::read_to_string(path).expect("Loading path is invalid");
@@ -9,10 +9,10 @@ pub fn load_data(path: &str) -> Vec<(Matrix, Matrix)> {
     let lines = contents.split("\n").collect::<Vec<&str>>();
     let mut res: Vec<(Matrix, Matrix)> = vec![];
 
-    for i in 0..lines.len() {
+    for i in (0..lines.len() - 1).step_by(2) {
         let input = create_vec(lines[i]);
         let i_length = input.len();
-        let output = create_vec(lines[i]);
+        let output = create_vec(lines[i+1]);
         let o_length = output.len();
 
         res.push((Matrix::reshape(input, 1, i_length).unwrap(),

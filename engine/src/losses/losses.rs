@@ -1,5 +1,5 @@
 use std::str::FromStr;
-use crate::maths::matrix::Matrix;
+use crate::maths::Matrix;
 
 pub enum Loss {
     CategoricalCrossEntropy,
