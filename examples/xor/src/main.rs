@@ -1,9 +1,10 @@
-use bricks::activations::dense_activation::DenseActivation;
-use bricks::losses::losses::Loss;
-use bricks::maths::matrix::Matrix;
-use bricks::models::dense_model::DenseModel;
-use bricks::sessions::session::Session;
-use bricks::shapes::dense_shape::DenseShape;
+use bricks::activations::DenseActivation;
+use bricks::data::load_data;
+use bricks::losses::Loss;
+use bricks::maths::Matrix;
+use bricks::models::DenseModel;
+use bricks::sessions::Session;
+use bricks::shapes::DenseShape;
 
 fn main() {
 
@@ -20,11 +21,8 @@ fn main() {
         model = DenseModel::load_model("xor.save");
     }
 
-    let training_data = vec![
-        (Matrix::from(vec![1.0,0.0]), Matrix::from(vec![1.0])),
-        (Matrix::from(vec![0.0,1.0]), Matrix::from(vec![1.0])),
-        (Matrix::from(vec![1.0,1.0]), Matrix::from(vec![0.0])),
-        (Matrix::from(vec![0.0,0.0]), Matrix::from(vec![0.0]))];
+    let training_data = load_data("training_data.dat");
+
     let testing_data = training_data.clone();
 
     let mut session = Session::new(model, 1E-2, training_data, testing_data, 50000, Some(0.005), true);

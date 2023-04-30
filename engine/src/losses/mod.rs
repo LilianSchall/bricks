@@ -1,1 +1,2 @@
-pub mod losses;
+mod losses;
+pub use losses::Loss;

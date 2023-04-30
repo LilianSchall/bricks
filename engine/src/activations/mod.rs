@@ -1,1 +1,2 @@
-pub mod dense_activation;
+mod dense_activation;
+pub use dense_activation::DenseActivation;

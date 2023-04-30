@@ -1,1 +1,2 @@
-pub mod session;
+mod session;
+pub use session::Session;
