@@ -1,8 +1,8 @@
 use crate::maths::Matrix;
-use crate::models::DenseModel;
+use crate::networks::{DenseNetwork, Network};
 
 pub struct Session {
-    model: DenseModel,
+    network: DenseNetwork,
     training_data: Vec<(Matrix, Matrix)>,
     testing_data: Vec<(Matrix, Matrix)>,
     learning_rate: f64,
@@ -13,13 +13,13 @@ pub struct Session {
 }
 
 impl Session {
-    pub fn new(model: DenseModel, learning_rate: f64,
+    pub fn new(network: DenseNetwork, learning_rate: f64,
                training_data: Vec<(Matrix, Matrix)>, testing_data: Vec<(Matrix, Matrix)>,
                epoch: usize, threshold: Option<f64>, verbose: bool) -> Session {
         let t = threshold.unwrap_or(0.0);
         let stop_on_threshold = t == 0.0;
         Session {
-            model,
+            network,
             learning_rate,
             training_data,
             testing_data,
@@ -30,8 +30,8 @@ impl Session {
         }
     }
 
-    pub fn give_model(self) -> DenseModel {
-        self.model
+    pub fn give_network(self) -> DenseNetwork {
+        self.network
     }
 
     pub fn fit(&mut self) -> f64 {
@@ -45,10 +45,10 @@ impl Session {
             for i in 0..self.training_data.len() {
                 let (i, o): &(Matrix, Matrix) = &self.training_data[i];
 
-                self.model.feed_forward(i);
-                let error = self.model.loss.compute_error(&self.model.value(), o);
-                let deltas = self.model.online_back_propagate(o);
-                self.model.update_weights(deltas, self.learning_rate);
+                self.network.feed_forward(i);
+                let error = self.network.loss.compute_error(&self.network.value(), o);
+                let deltas = self.network.online_back_propagate(o);
+                self.network.update_weights(deltas, self.learning_rate);
                 error_sum += error;
             }
 
@@ -63,11 +63,11 @@ impl Session {
         for i in 0..self.testing_data.len() {
             let (i, o): &(Matrix, Matrix) = &self.testing_data[i];
 
-            self.model.feed_forward(i);
-            let error = self.model.loss.compute_error(&self.model.value(), o);
+            self.network.feed_forward(i);
+            let error = self.network.loss.compute_error(&self.network.value(), o);
             err += error;
             if self.verbose {
-                print_error_output_expected(error, o, &self.model.value());
+                print_error_output_expected(error, o, &self.network.value());
             }
         }
         err

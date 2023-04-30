@@ -3,7 +3,7 @@ mod network_tests {
     use bricks::activations::dense_activation::DenseActivation;
     use bricks::losses::losses::Loss;
     use bricks::maths::matrix::Matrix;
-    use bricks::models::dense_model::DenseModel;
+    use bricks::networks::dense_network::DenseNetwork;
     use bricks::sessions::session::Session;
     use bricks::shapes::dense_shape::DenseShape;
 
@@ -11,7 +11,7 @@ mod network_tests {
     fn test_xor_build() {
         let activations = vec![DenseActivation::Relu, DenseActivation::Tanh];
         let shape = vec![DenseShape::new(2, 1, 1), DenseShape::new(3, 1, 1), DenseShape::new(1, 1, 1)];
-        let mut model = DenseModel::new(activations, Loss::MeanSquaredError, shape, None);
+        let mut model = DenseNetwork::new(activations, Loss::MeanSquaredError, shape, None);
 
         let training_data = vec![
             (Matrix::from(vec![1.0, 0.0]), Matrix::from(vec![1.0])),

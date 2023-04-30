@@ -3,10 +3,10 @@ use std::str::FromStr;
 use crate::activations::DenseActivation;
 use crate::maths::Matrix;
 use crate::losses::Loss;
-use crate::models::DEFAULT_EPSILON_VALUE;
+use crate::networks::{DEFAULT_EPSILON_VALUE, Network};
 use crate::shapes::DenseShape;
 
-pub struct DenseModel {
+pub struct DenseNetwork {
     nb_layers: usize,
     pub loss: Loss,
     activations: Vec<DenseActivation>,
@@ -19,9 +19,9 @@ pub struct DenseModel {
     epsilon: f64,
 }
 
-impl DenseModel {
+impl DenseNetwork {
     pub fn new(activations: Vec<DenseActivation>, loss: Loss,
-               shape: Vec<DenseShape>, epsilon: Option<f64>) -> DenseModel {
+               shape: Vec<DenseShape>, epsilon: Option<f64>) -> DenseNetwork {
         let mut weights = Vec::with_capacity(shape.len() - 1);
         let mut biases = Vec::with_capacity(shape.len() - 1);
         let mut values = Vec::with_capacity(shape.len());
@@ -37,7 +37,7 @@ impl DenseModel {
             biases.push(Matrix::random(1, shape[i + 1].range));
         }
 
-        DenseModel {
+        DenseNetwork {
             nb_layers: shape.len(),
             loss,
             activations,
@@ -49,26 +49,6 @@ impl DenseModel {
         }
     }
 
-    pub fn feed_forward(&mut self, input: &Matrix) {
-        if input.h != self.values[0].h {
-            return;
-        }
-
-        self.values[0] = input.clone();
-        self.raw_values[0] = input.clone();
-
-        for i in 0..(self.nb_layers - 1) {
-            let mut mat = (&self.weights[i] * &self.values[i]).unwrap();
-            mat = (&mat + &self.biases[i]).unwrap();
-            self.raw_values[i + 1] = mat.clone();
-            self.activations[i].apply(&mut mat, self.epsilon);
-            self.values[i + 1] = mat;
-        }
-    }
-
-    pub fn value(&self) -> Matrix {
-        self.values[self.nb_layers - 1].clone()
-    }
 
     pub fn online_back_propagate(&self, output: &Matrix) -> Vec<Matrix> {
         let mut deltas: Vec<Matrix> = Vec::with_capacity(self.nb_layers);
@@ -102,8 +82,31 @@ impl DenseModel {
             }
         }
     }
+}
 
-    pub fn load_model(path: &str) -> DenseModel {
+impl Network for DenseNetwork {
+    fn feed_forward(&mut self, input: &Matrix) {
+        if input.h != self.values[0].h {
+            return;
+        }
+
+        self.values[0] = input.clone();
+        self.raw_values[0] = input.clone();
+
+        for i in 0..(self.nb_layers - 1) {
+            let mut mat = (&self.weights[i] * &self.values[i]).unwrap();
+            mat = (&mat + &self.biases[i]).unwrap();
+            self.raw_values[i + 1] = mat.clone();
+            self.activations[i].apply(&mut mat, self.epsilon);
+            self.values[i + 1] = mat;
+        }
+    }
+
+    fn value(&self) -> Matrix {
+        self.values[self.nb_layers - 1].clone()
+    }
+
+    fn load_network(path: &str) -> DenseNetwork {
         let mut weights: Vec<Matrix> = vec![];
         let mut biases: Vec<Matrix> = vec![];
         let mut activations: Vec<DenseActivation> = vec![];
@@ -118,7 +121,6 @@ impl DenseModel {
         let mut shape_selector: usize = 0;
         let nb_lines = lines.len();
         for line in lines {
-
             if phase == nb_lines - 1 {
                 loss = Loss::from_str(line).unwrap();
                 break;
@@ -166,7 +168,7 @@ impl DenseModel {
             raw_values.push(Matrix::new(1, shape[i].range));
         }
 
-        DenseModel {
+        DenseNetwork {
             nb_layers: shape.len(),
             loss,
             activations,
@@ -178,7 +180,7 @@ impl DenseModel {
         }
     }
 
-    pub fn save_model(&self, path: &str) {
+    fn save_network(&self, path: &str) {
         let mut content: String = "".to_owned();
 
         for i in 0..self.values.len() {
@@ -200,10 +202,10 @@ impl DenseModel {
         content.push_str("\n");
         content.push_str(&self.loss.to_string());
 
-        fs::write(path, content).expect("Could not save the model at the given path.");
+        fs::write(path, content).expect("Could not save the network at the given path.");
     }
-
 }
+
 
 fn concat_weights_and_bias(c: &mut String, weights: &Vec<Matrix>, biases: &Vec<Matrix>) {
     for i in 0..weights.len() {
