@@ -4,6 +4,7 @@ use crate::activations::DenseActivation;
 use crate::maths::Matrix;
 use crate::losses::Loss;
 use crate::networks::{DEFAULT_EPSILON_VALUE, Network};
+use crate::networks::network_operations::feed_forward_generics;
 use crate::shapes::DenseShape;
 
 pub struct DenseNetwork {
@@ -93,13 +94,8 @@ impl Network for DenseNetwork {
         self.values[0] = input.clone();
         self.raw_values[0] = input.clone();
 
-        for i in 0..(self.nb_layers - 1) {
-            let mut mat = (&self.weights[i] * &self.values[i]).unwrap();
-            mat = (&mat + &self.biases[i]).unwrap();
-            self.raw_values[i + 1] = mat.clone();
-            self.activations[i].apply(&mut mat, self.epsilon);
-            self.values[i + 1] = mat;
-        }
+        feed_forward_generics(&mut self.values, &mut self.raw_values, &self.activations, &self.weights,
+                              &self.biases, self.nb_layers, self.epsilon);
     }
 
     fn value(&self) -> Matrix {

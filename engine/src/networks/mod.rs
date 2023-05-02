@@ -1,4 +1,7 @@
 mod dense_network;
+mod auto_encoder_network;
+mod network_operations;
+
 pub use dense_network::DenseNetwork;
 use crate::maths::Matrix;
 
