@@ -1,7 +1,5 @@
-use std::collections::VecDeque;
 use std::fs;
 use crate::maths::Matrix;
-use crate::shapes::DenseShape;
 
 pub fn load_data(path: &str) -> Vec<(Matrix, Matrix)> {
     let contents = fs::read_to_string(path).expect("Loading path is invalid");

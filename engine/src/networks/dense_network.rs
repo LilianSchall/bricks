@@ -1,10 +1,9 @@
 use std::fs;
-use std::str::FromStr;
 use crate::activations::DenseActivation;
 use crate::maths::Matrix;
 use crate::losses::Loss;
 use crate::networks::{DEFAULT_EPSILON_VALUE, Network};
-use crate::networks::network_operations::feed_forward_generics;
+use crate::networks::network_operations::{feed_forward_generics, load_network_generics};
 use crate::shapes::DenseShape;
 
 pub struct DenseNetwork {
@@ -23,6 +22,9 @@ pub struct DenseNetwork {
 impl DenseNetwork {
     pub fn new(activations: Vec<DenseActivation>, loss: Loss,
                shape: Vec<DenseShape>, epsilon: Option<f64>) -> DenseNetwork {
+
+        assert_eq!(activations.len(), shape.len());
+
         let mut weights = Vec::with_capacity(shape.len() - 1);
         let mut biases = Vec::with_capacity(shape.len() - 1);
         let mut values = Vec::with_capacity(shape.len());
@@ -113,49 +115,9 @@ impl Network for DenseNetwork {
         let contents = fs::read_to_string(path).expect("Loading path is invalid");
 
         let lines = contents.split("\n").collect::<Vec<_>>();
-        let mut phase: usize = 0;
-        let mut shape_selector: usize = 0;
-        let nb_lines = lines.len();
-        for line in lines {
-            if phase == nb_lines - 1 {
-                loss = Loss::from_str(line).unwrap();
-                break;
-            }
 
-            match phase {
-                0 => {
-                    shape = line.split(" ")
-                        .map(|value| DenseShape::one_d(value.parse::<usize>().unwrap()))
-                        .collect::<Vec<_>>();
-                    weights = Vec::with_capacity(shape.len() - 1);
-                    biases = Vec::with_capacity(shape.len() - 1);
-                }
-                1 => activations = line.split(" ")
-                    .map(|value| DenseActivation::from_str(value).unwrap())
-                    .collect::<Vec<DenseActivation>>(),
-                _ => {
-                    if phase % 2 == 0 {
-                        weights.push(Matrix::reshape(
-                            line.split(" ")
-                                .map(|value| value.parse::<f64>().unwrap())
-                                .collect::<Vec<f64>>()
-                            , shape[shape_selector].range
-                            , shape[shape_selector + 1].range)
-                            .unwrap());
-                        shape_selector += 1;
-                    } else {
-                        biases.push(Matrix::reshape(
-                            line.split(" ")
-                                .map(|value| value.parse::<f64>().unwrap())
-                                .collect::<Vec<f64>>()
-                            , 1
-                            , shape[shape_selector].range)
-                            .unwrap());
-                    }
-                }
-            }
-            phase += 1;
-        }
+        load_network_generics(&mut weights, &mut biases, &mut activations, &mut loss, &mut shape, lines);
+
         let mut values = Vec::with_capacity(shape.len());
         let mut raw_values = Vec::with_capacity(shape.len());
 
