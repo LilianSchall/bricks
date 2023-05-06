@@ -1,7 +1,8 @@
 use crate::maths::Matrix;
-use crate::networks::{DenseNetwork, Network};
+use crate::networks::{DenseNetwork, Network, SupervisedNetwork};
+use crate::sessions::Session;
 
-pub struct Session {
+pub struct DenseSession {
     network: DenseNetwork,
     training_data: Vec<(Matrix, Matrix)>,
     testing_data: Vec<(Matrix, Matrix)>,
@@ -12,13 +13,13 @@ pub struct Session {
     verbose: bool,
 }
 
-impl Session {
+impl DenseSession {
     pub fn new(network: DenseNetwork, learning_rate: f64,
                training_data: Vec<(Matrix, Matrix)>, testing_data: Vec<(Matrix, Matrix)>,
-               epoch: usize, threshold: Option<f64>, verbose: bool) -> Session {
+               epoch: usize, threshold: Option<f64>, verbose: bool) -> DenseSession {
         let t = threshold.unwrap_or(0.0);
         let stop_on_threshold = t == 0.0;
-        Session {
+        DenseSession {
             network,
             learning_rate,
             training_data,
@@ -29,12 +30,10 @@ impl Session {
             verbose,
         }
     }
+}
 
-    pub fn give_network(self) -> DenseNetwork {
-        self.network
-    }
-
-    pub fn fit(&mut self) -> f64 {
+impl Session<DenseNetwork> for DenseSession {
+    fn fit(&mut self) -> f64 {
         self.train();
         self.test()
     }
@@ -47,7 +46,7 @@ impl Session {
 
                 self.network.feed_forward(i);
                 let error = self.network.loss.compute_error(&self.network.value(), o);
-                let deltas = self.network.online_back_propagate(o);
+                let deltas = self.network.feed_backward(o);
                 self.network.update_weights(deltas, self.learning_rate);
                 error_sum += error;
             }
@@ -58,7 +57,7 @@ impl Session {
         }
     }
 
-    pub fn test(&mut self) -> f64 {
+    fn test(&mut self) -> f64 {
         let mut err: f64 = 0.0;
         for i in 0..self.testing_data.len() {
             let (i, o): &(Matrix, Matrix) = &self.testing_data[i];
@@ -71,6 +70,10 @@ impl Session {
             }
         }
         err
+    }
+
+    fn release_network(self) -> DenseNetwork {
+        self.network
     }
 }
 

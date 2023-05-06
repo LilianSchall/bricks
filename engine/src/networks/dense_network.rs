@@ -2,8 +2,8 @@ use std::fs;
 use crate::activations::DenseActivation;
 use crate::maths::Matrix;
 use crate::losses::Loss;
-use crate::networks::{DEFAULT_EPSILON_VALUE, Network};
-use crate::networks::network_operations::{feed_forward_generics, load_network_generics};
+use crate::networks::{DEFAULT_EPSILON_VALUE, Network, SupervisedNetwork};
+use crate::networks::network_operations::{feed_forward_generics, load_network_generics, online_back_propagation_generics, save_network_generics, update_weights_generics};
 use crate::shapes::DenseShape;
 
 pub struct DenseNetwork {
@@ -22,8 +22,7 @@ pub struct DenseNetwork {
 impl DenseNetwork {
     pub fn new(activations: Vec<DenseActivation>, loss: Loss,
                shape: Vec<DenseShape>, epsilon: Option<f64>) -> DenseNetwork {
-
-        assert_eq!(activations.len(), shape.len());
+        assert_eq!(activations.len(), shape.len() - 1);
 
         let mut weights = Vec::with_capacity(shape.len() - 1);
         let mut biases = Vec::with_capacity(shape.len() - 1);
@@ -55,35 +54,22 @@ impl DenseNetwork {
 
     pub fn online_back_propagate(&self, output: &Matrix) -> Vec<Matrix> {
         let mut deltas: Vec<Matrix> = Vec::with_capacity(self.nb_layers);
-        for l in (1..self.nb_layers).rev() {
-            let delta: Matrix;
-            let mut d_z = self.raw_values[l].clone();
-            self.activations[l - 1].derivate(&mut d_z, self.epsilon);
-            if l == self.nb_layers - 1 {
-                delta = self.loss.compute_differential_error(&self.values[l], output)
-                    .hadamard_dot(&d_z).unwrap();
-            } else {
-                delta = (&self.weights[l].t() * &deltas[deltas.len() - 1]).unwrap().hadamard_dot(&d_z).unwrap();
-            }
-            deltas.push(delta);
-        }
-        deltas.reverse();
+
+        online_back_propagation_generics(&mut deltas, &self.activations, &self.values, &self.raw_values,
+                                         &self.loss, &self.weights, self.nb_layers, self.epsilon, output);
+
         deltas
     }
+}
 
-    pub fn update_weights(&mut self, deltas: Vec<Matrix>, learning_rate: f64) {
-        for l in (1..self.nb_layers).rev() {
-            self.biases[l - 1] = (&self.biases[l - 1] - &(&deltas[l - 1] * learning_rate)).unwrap();
+impl SupervisedNetwork for DenseNetwork {
+    fn feed_backward(&self, output: &Matrix) -> Vec<Matrix> {
+        self.online_back_propagate(output)
+    }
 
-            for j in 0..deltas[l - 1].len() {
-                for k in 0..self.values[l - 1].len() {
-                    let a = self.values[l - 1].get(k).unwrap();
-                    let d = deltas[l - 1].get(j).unwrap();
-                    let w = self.weights[l - 1].get_at(j, k).unwrap();
-                    self.weights[l - 1].set_at(j, k, w - learning_rate * (a * d));
-                }
-            }
-        }
+    fn update_weights(&mut self, deltas: Vec<Matrix>, learning_rate: f64) {
+        update_weights_generics(deltas, learning_rate, &self.values,
+                                &mut self.weights, &mut self.biases, self.nb_layers);
     }
 }
 
@@ -139,39 +125,9 @@ impl Network for DenseNetwork {
     }
 
     fn save_network(&self, path: &str) {
-        let mut content: String = "".to_owned();
-
-        for i in 0..self.values.len() {
-            if i != 0 {
-                content.push_str(" ");
-            }
-            content.push_str(self.values[i].h.to_string().as_str());
-        }
-        content.push_str("\n");
-        for i in 0..self.activations.len() {
-            if i != 0 {
-                content.push_str(" ");
-            }
-            content.push_str(self.activations[i].to_string().as_str());
-        }
-        content.push_str("\n");
-
-        concat_weights_and_bias(&mut content, &self.weights, &self.biases);
-        content.push_str("\n");
-        content.push_str(&self.loss.to_string());
-
-        fs::write(path, content).expect("Could not save the network at the given path.");
-    }
-}
-
-
-fn concat_weights_and_bias(c: &mut String, weights: &Vec<Matrix>, biases: &Vec<Matrix>) {
-    for i in 0..weights.len() {
-        if i != 0 {
-            c.push_str("\n");
-        }
-        c.push_str(&weights[i].to_string());
-        c.push_str("\n");
-        c.push_str(&biases[i].to_string());
+        let shape = self.values.iter()
+            .map(|v| DenseShape::one_d(v.h)).collect();
+        save_network_generics(path, shape, &self.activations,
+                              &self.loss, &self.weights, &self.biases);
     }
 }

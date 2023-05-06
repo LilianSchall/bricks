@@ -1,3 +1,4 @@
+use std::fs;
 use crate::activations::DenseActivation;
 use crate::losses::Loss;
 use crate::maths::Matrix;
@@ -61,5 +62,79 @@ pub fn load_network_generics(weights: &mut Vec<Matrix>, biases: &mut Vec<Matrix>
             }
         }
         phase += 1;
+    }
+}
+
+pub fn save_network_generics(path: &str, shape: Vec<DenseShape>,
+                             activations: &Vec<DenseActivation>, loss: &Loss,
+                             weights: &Vec<Matrix>, biases: &Vec<Matrix>) {
+    let mut content: String = "".to_owned();
+
+    for i in 0..shape.len() {
+        if i != 0 {
+            content.push_str(" ");
+        }
+        content.push_str(shape[i].range.to_string().as_str());
+    }
+    content.push_str("\n");
+    for i in 0..activations.len() {
+        if i != 0 {
+            content.push_str(" ");
+        }
+        content.push_str(activations[i].to_string().as_str());
+    }
+    content.push_str("\n");
+
+    concat_weights_and_bias(&mut content, &weights, &biases);
+    content.push_str("\n");
+    content.push_str(&loss.to_string());
+
+    fs::write(path, content).expect("Could not save the network at the given path.");
+}
+
+fn concat_weights_and_bias(c: &mut String, weights: &Vec<Matrix>, biases: &Vec<Matrix>) {
+    for i in 0..weights.len() {
+        if i != 0 {
+            c.push_str("\n");
+        }
+        c.push_str(&weights[i].to_string());
+        c.push_str("\n");
+        c.push_str(&biases[i].to_string());
+    }
+}
+
+pub fn online_back_propagation_generics(deltas: &mut Vec<Matrix>, activations: &Vec<DenseActivation>,
+                                        values: &Vec<Matrix>, raw_values: &Vec<Matrix>, loss: &Loss,
+                                        weights: &Vec<Matrix>, nb_layers: usize, epsilon: f64,
+                                        output: &Matrix) {
+    for l in (1..nb_layers).rev() {
+        let delta: Matrix;
+        let mut d_z = raw_values[l].clone();
+        activations[l - 1].derivate(&mut d_z, epsilon);
+        if l == nb_layers - 1 {
+            delta = loss.compute_differential_error(&values[l], output)
+                .hadamard_dot(&d_z).unwrap();
+        } else {
+            delta = (&weights[l].t() * &deltas[deltas.len() - 1]).unwrap().hadamard_dot(&d_z).unwrap();
+        }
+        deltas.push(delta);
+    }
+    deltas.reverse();
+}
+
+
+pub fn update_weights_generics(deltas: Vec<Matrix>, learning_rate: f64, values: &Vec<Matrix>,
+                               weights: &mut Vec<Matrix>, biases: &mut Vec<Matrix>, nb_layers: usize) {
+    for l in (1..nb_layers).rev() {
+        biases[l - 1] = (&biases[l - 1] - &(&deltas[l - 1] * learning_rate)).unwrap();
+
+        for j in 0..deltas[l - 1].len() {
+            for k in 0..values[l - 1].len() {
+                let a = values[l - 1].get(k).unwrap();
+                let d = deltas[l - 1].get(j).unwrap();
+                let w = weights[l - 1].get_at(j, k).unwrap();
+                weights[l - 1].set_at(j, k, w - learning_rate * (a * d));
+            }
+        }
     }
 }

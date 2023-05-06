@@ -15,3 +15,8 @@ pub trait Network {
     fn load_network(path: &str) -> Self;
     fn save_network(&self, path: &str);
 }
+
+pub trait SupervisedNetwork {
+    fn feed_backward(&self, output: &Matrix) -> Vec<Matrix>;
+    fn update_weights(&mut self, deltas: Vec<Matrix>, learning_rate: f64);
+}

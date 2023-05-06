@@ -2,18 +2,14 @@ use std::fs;
 use crate::activations::DenseActivation;
 use crate::losses::Loss;
 use crate::maths::Matrix;
-use crate::networks::{DEFAULT_EPSILON_VALUE, Network};
-use crate::networks::network_operations::{feed_forward_generics, load_network_generics};
+use crate::networks::{DEFAULT_EPSILON_VALUE, Network, SupervisedNetwork};
+use crate::networks::network_operations::{feed_forward_generics, load_network_generics,
+                                          online_back_propagation_generics, save_network_generics,
+                                          update_weights_generics};
 use crate::shapes::DenseShape;
 
 pub struct AutoEncoderNetwork {
-    // There is no number of layers, since an auto-encoder is considered of three layers
-    // ,one of those is disposable after training: so there is two weights matrices:
-    // the encoder weights that link the input layer to the hidden layer,
-    // and the decoder weights that link the hidden layer to the output layer.
-    // As a dense network, those layers still have each one an activation function
-    // as well as a loss function for backpropagation
-
+    nb_layers: usize,
     pub loss: Loss,
     activations: Vec<DenseActivation>,
     weights: Vec<Matrix>,
@@ -27,9 +23,7 @@ pub struct AutoEncoderNetwork {
 impl AutoEncoderNetwork {
     pub fn new(activations: Vec<DenseActivation>, loss: Loss,
                shape: Vec<DenseShape>, epsilon: Option<f64>) -> Self {
-
-        assert_eq!(activations.len(), 3);
-        assert_eq!(shape.len(), 3);
+        assert_eq!(activations.len(), shape.len() - 1);
 
         let mut weights = Vec::with_capacity(shape.len() - 1);
         let mut biases = Vec::with_capacity(shape.len() - 1);
@@ -47,6 +41,7 @@ impl AutoEncoderNetwork {
         }
 
         AutoEncoderNetwork {
+            nb_layers: shape.len(),
             loss,
             activations,
             weights,
@@ -57,9 +52,27 @@ impl AutoEncoderNetwork {
         }
     }
 
+    pub fn online_back_propagate(&self, output: &Matrix) -> Vec<Matrix> {
+        let mut deltas: Vec<Matrix> = Vec::with_capacity(self.nb_layers);
 
-    // todo: refactoring of backpropagation for dense_network and auto_encoder_network
+        online_back_propagation_generics(&mut deltas, &self.activations, &self.values, &self.raw_values,
+                                         &self.loss, &self.weights, self.nb_layers, self.epsilon, output);
+
+        deltas
+    }
 }
+
+impl SupervisedNetwork for AutoEncoderNetwork {
+    fn feed_backward(&self, output: &Matrix) -> Vec<Matrix> {
+        self.online_back_propagate(output)
+    }
+
+    fn update_weights(&mut self, deltas: Vec<Matrix>, learning_rate: f64) {
+        update_weights_generics(deltas, learning_rate, &self.values,
+                                &mut self.weights, &mut self.biases, self.nb_layers);
+    }
+}
+
 
 impl Network for AutoEncoderNetwork {
     fn feed_forward(&mut self, input: &Matrix) {
@@ -100,6 +113,7 @@ impl Network for AutoEncoderNetwork {
         }
 
         AutoEncoderNetwork {
+            nb_layers: shape.len(),
             loss,
             activations,
             weights,
@@ -111,6 +125,9 @@ impl Network for AutoEncoderNetwork {
     }
 
     fn save_network(&self, path: &str) {
-        todo!()
+        let shape = self.values.iter()
+            .map(|v| DenseShape::one_d(v.h)).collect();
+        save_network_generics(path, shape, &self.activations,
+                              &self.loss, &self.weights, &self.biases);
     }
 }
