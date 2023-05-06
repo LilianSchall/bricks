@@ -2,7 +2,7 @@ use bricks::activations::DenseActivation;
 use bricks::data::load_data;
 use bricks::losses::Loss;
 use bricks::networks::{DenseNetwork, Network};
-use bricks::sessions::Session;
+use bricks::sessions::{DenseSession, Session};
 use bricks::shapes::DenseShape;
 
 fn main() {
@@ -24,9 +24,9 @@ fn main() {
 
     let testing_data = training_data.clone();
 
-    let mut session = Session::new(network, 1E-2, training_data, testing_data, 50000, Some(0.005), true);
+    let mut session = DenseSession::new(network, 1E-2, training_data, testing_data, 50000, Some(0.005), true);
 
     println!("Error value: {}", if !save_exist {session.fit()} else {session.test()});
-    network = session.give_network();
+    network = session.release_network();
     network.save_network("xor.save");
 }
