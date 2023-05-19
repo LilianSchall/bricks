@@ -34,11 +34,9 @@ pub fn dot_monothreaded(a: &Vec<f64>, b: &Vec<f64>, n: usize, k: usize, p: usize
 
     for i in 0..n {
         for j in 0..p {
-            let mut buffer: f64 = 0.0;
             for l in 0..k {
-                buffer += a[i * k + l] * b[l * p + j];
+                result[i * p + j] += a[i * k + l] * b[l * p + j];
             }
-            result[i * p + j] = buffer;
         }
     }
     result

@@ -2,6 +2,8 @@ use crate::maths::Matrix;
 use crate::networks::{DenseNetwork, Network, SupervisedNetwork};
 use crate::sessions::Session;
 
+use indicatif::ProgressBar;
+
 pub struct DenseSession {
     network: DenseNetwork,
     training_data: Vec<(Matrix, Matrix)>,
@@ -39,8 +41,12 @@ impl Session<DenseNetwork> for DenseSession {
     }
 
     fn train(&mut self) {
-        for _ in 0..self.epoch {
+        for ep in 0..self.epoch {
             let mut error_sum: f64 = 0.0;
+            let bar : ProgressBar = ProgressBar::new(self.training_data.len() as u64);
+            if self.verbose {
+                println!("Epoch {}:", ep);
+            }
             for i in 0..self.training_data.len() {
                 let (i, o): &(Matrix, Matrix) = &self.training_data[i];
 
@@ -49,9 +55,19 @@ impl Session<DenseNetwork> for DenseSession {
                 let deltas = self.network.feed_backward(o);
                 self.network.update_weights(deltas, self.learning_rate);
                 error_sum += error;
+
+                if self.verbose {
+                    bar.inc(1);
+                }
             }
 
-            if self.stop_on_threshold && (error_sum / (self.training_data.len() as f64)) < self.threshold {
+            let err_ratio = (error_sum / (self.training_data.len() as f64));
+            if self.verbose {
+                bar.finish();
+                println!("Error ratio: {}", err_ratio);
+            }
+
+            if self.stop_on_threshold && err_ratio < self.threshold {
                 break;
             }
         }

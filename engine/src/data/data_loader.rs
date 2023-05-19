@@ -19,6 +19,15 @@ pub fn load_data(path: &str) -> Vec<(Matrix, Matrix)> {
     res
 }
 
+pub fn split_data(mut data: Vec<(Matrix, Matrix)>, ratio: usize) -> (Vec<(Matrix, Matrix)>, Vec<(Matrix, Matrix)>) {
+
+    let nb_elements = ratio * data.len() / 100;
+
+    let testing_data = data.split_off(nb_elements);
+
+    (testing_data, data)
+}
+
 fn create_vec(string: &str) -> Vec<f64> {
     string.split(" ")
         .map(|value| value.parse::<f64>().unwrap())
