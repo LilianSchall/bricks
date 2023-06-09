@@ -3,6 +3,8 @@ use crate::networks::{DenseNetwork, Network, SupervisedNetwork};
 use crate::sessions::Session;
 
 use indicatif::ProgressBar;
+use rand::seq::SliceRandom;
+use rand::thread_rng;
 
 pub struct DenseSession {
     network: DenseNetwork,
@@ -53,6 +55,7 @@ impl Session<DenseNetwork> for DenseSession {
             if self.verbose {
                 println!("Epoch {}:", ep);
             }
+            self.training_data.shuffle(&mut thread_rng());
             for i in 0..self.training_data.len() {
                 let (i, o): &(Matrix, Matrix) = &self.training_data[i];
 

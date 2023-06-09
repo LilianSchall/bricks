@@ -70,7 +70,7 @@ fn cross_entropy(values: &Matrix, expected: &Matrix) -> f64 {
     for i in 0..values.len() {
         let x = values.get(i);
         let y = expected.get(i);
-        let v = if y == 1.0 {(-x).ln()} else {(1.0 - x).ln()};
+        let v = if y == 1.0 {-(-x).ln()} else {-(1.0 - x).ln()};
         sum += if v.is_nan() {0.0} else {v};
     }
 

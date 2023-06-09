@@ -49,7 +49,7 @@ impl Matrix {
     }
 
     pub fn get(&self, i: usize) -> f64 {
-        assert_eq!(i < self.len(), true);
+        assert_eq!(i < self.len(), true, "We want to access index {} in a matrix of length {}", i, self.len());
         self.values[i]
     }
 
