@@ -1,5 +1,5 @@
-use std::str::FromStr;
 use crate::maths::Matrix;
+use std::str::FromStr;
 
 pub enum Loss {
     CategoricalCrossEntropy,
@@ -12,10 +12,10 @@ impl FromStr for Loss {
 
     fn from_str(input: &str) -> Result<Loss, Self::Err> {
         match input {
-            "CrossEntropy"   => Ok(Loss::CrossEntropy),
-            "CategoricalCrossEntropy"        => Ok(Loss::CategoricalCrossEntropy),
-            "MeanSquaredError"          => Ok(Loss::MeanSquaredError),
-            _ => Err(())
+            "CrossEntropy" => Ok(Loss::CrossEntropy),
+            "CategoricalCrossEntropy" => Ok(Loss::CategoricalCrossEntropy),
+            "MeanSquaredError" => Ok(Loss::MeanSquaredError),
+            _ => Err(()),
         }
     }
 }
@@ -26,69 +26,80 @@ impl ToString for Loss {
             Loss::CrossEntropy => "CrossEntropy",
             Loss::CategoricalCrossEntropy => "CategoricalCrossEntropy",
             Loss::MeanSquaredError => "MeanSquaredError",
-        }.to_string()
+        }
+        .to_string()
     }
 }
 
 impl Loss {
-
     pub fn compute_error(&self, values: &Matrix, expected: &Matrix) -> f64 {
         match self {
             Loss::CategoricalCrossEntropy => categorical_cross_entropy(values, expected),
             Loss::CrossEntropy => cross_entropy(values, expected),
-            Loss::MeanSquaredError => mean_squared_error(values, expected)
+            Loss::MeanSquaredError => mean_squared_error(values, expected),
         }
     }
 
-    pub fn compute_differential_error(&self, values: &Matrix, expected: &Matrix) -> Matrix  {
+    pub fn compute_differential_error(&self, values: &Matrix, expected: &Matrix) -> Matrix {
         match self {
-            Loss::CategoricalCrossEntropy => differential_categorical_cross_entropy(values, expected),
+            Loss::CategoricalCrossEntropy => {
+                differential_categorical_cross_entropy(values, expected)
+            }
             Loss::CrossEntropy => differential_cross_entropy(values, expected),
-            Loss::MeanSquaredError => differential_mean_squared_error(values, expected)
+            Loss::MeanSquaredError => differential_mean_squared_error(values, expected),
         }
     }
 }
 
-
 fn categorical_cross_entropy(values: &Matrix, expected: &Matrix) -> f64 {
-    let mut sum:  f64 = 0.0;
+    let mut sum: f64 = 0.0;
 
     for i in 0..values.len() {
-        sum += expected.get(i).unwrap() * values.get(i).unwrap().ln();
+        let x = values.get(i);
+        let y = expected.get(i);
+        let v = if y == 1.0 {(-x).ln()} else {(1.0 - x).ln()};
+        sum += if v.is_nan() {0.0} else {v};
     }
 
-    -sum
+    sum
 }
 
 fn cross_entropy(values: &Matrix, expected: &Matrix) -> f64 {
-    let mut sum:  f64 = 0.0;
+    let mut sum: f64 = 0.0;
 
     for i in 0..values.len() {
-        sum += expected.get(i).unwrap() * values.get(i).unwrap().ln();
+        let x = values.get(i);
+        let y = expected.get(i);
+        let v = if y == 1.0 {(-x).ln()} else {(1.0 - x).ln()};
+        sum += if v.is_nan() {0.0} else {v};
     }
 
-    -sum
+    sum
 }
 
 fn mean_squared_error(values: &Matrix, expected: &Matrix) -> f64 {
-
-    let mut sum:  f64 = 0.0;
+    let mut sum: f64 = 0.0;
 
     for i in 0..values.len() {
-        sum += (expected.get(i).unwrap() - values.get(i).unwrap()).powi(2);
+        sum += (expected.get(i) - values.get(i)).powi(2);
     }
 
-    sum / (values.len() as f64)
+    sum * 0.5
 }
 
 fn differential_categorical_cross_entropy(values: &Matrix, expected: &Matrix) -> Matrix {
-    (values - expected).unwrap()
+    (values - expected)
 }
 
 fn differential_cross_entropy(values: &Matrix, expected: &Matrix) -> Matrix {
-    (values - expected).unwrap()
+    Matrix::double_mapping(|x,y| {
+        if x == 0.0 || x == 1.0 {
+            return 0.0;
+        }
+        (y - x) / (x * (x - 1.0))
+    }, values, expected)
 }
 
 fn differential_mean_squared_error(values: &Matrix, expected: &Matrix) -> Matrix {
-    (values - expected).unwrap()
+    (values - expected)
 }

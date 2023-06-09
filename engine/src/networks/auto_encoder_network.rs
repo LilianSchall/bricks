@@ -1,12 +1,13 @@
-use std::fs;
 use crate::activations::DenseActivation;
 use crate::losses::Loss;
 use crate::maths::Matrix;
-use crate::networks::{DEFAULT_EPSILON_VALUE, Network, SupervisedNetwork};
-use crate::networks::network_operations::{feed_forward_generics, load_network_generics,
-                                          online_back_propagation_generics, save_network_generics,
-                                          update_weights_generics};
+use crate::networks::network_operations::{
+    feed_forward_generics, load_network_generics, back_propagation_generics,
+    save_network_generics, update_weights_generics,
+};
+use crate::networks::{Network, SupervisedNetwork, DEFAULT_EPSILON_VALUE};
 use crate::shapes::DenseShape;
+use std::fs;
 
 pub struct AutoEncoderNetwork {
     nb_layers: usize,
@@ -21,8 +22,12 @@ pub struct AutoEncoderNetwork {
 }
 
 impl AutoEncoderNetwork {
-    pub fn new(activations: Vec<DenseActivation>, loss: Loss,
-               shape: Vec<DenseShape>, epsilon: Option<f64>) -> Self {
+    pub fn new(
+        activations: Vec<DenseActivation>,
+        loss: Loss,
+        shape: Vec<DenseShape>,
+        epsilon: Option<f64>,
+    ) -> Self {
         assert_eq!(activations.len(), shape.len() - 1);
 
         let mut weights = Vec::with_capacity(shape.len() - 1);
@@ -55,8 +60,17 @@ impl AutoEncoderNetwork {
     pub fn online_back_propagate(&self, output: &Matrix) -> Vec<Matrix> {
         let mut deltas: Vec<Matrix> = Vec::with_capacity(self.nb_layers);
 
-        online_back_propagation_generics(&mut deltas, &self.activations, &self.values, &self.raw_values,
-                                         &self.loss, &self.weights, self.nb_layers, self.epsilon, output);
+        back_propagation_generics(
+            &mut deltas,
+            &self.activations,
+            &self.values,
+            &self.raw_values,
+            &self.loss,
+            &self.weights,
+            self.nb_layers,
+            self.epsilon,
+            output,
+        );
 
         deltas
     }
@@ -68,11 +82,16 @@ impl SupervisedNetwork for AutoEncoderNetwork {
     }
 
     fn update_weights(&mut self, deltas: Vec<Matrix>, learning_rate: f64) {
-        update_weights_generics(deltas, learning_rate, &self.values,
-                                &mut self.weights, &mut self.biases, self.nb_layers);
+        update_weights_generics(
+            deltas,
+            learning_rate,
+            &self.values,
+            &mut self.weights,
+            &mut self.biases,
+            self.nb_layers,
+        );
     }
 }
-
 
 impl Network for AutoEncoderNetwork {
     fn feed_forward(&mut self, input: &Matrix) {
@@ -84,8 +103,15 @@ impl Network for AutoEncoderNetwork {
         self.raw_values[0] = input.clone();
         let nb_layers = self.values.len();
 
-        feed_forward_generics(&mut self.values, &mut self.raw_values, &self.activations, &self.weights,
-                              &self.biases, nb_layers, self.epsilon);
+        feed_forward_generics(
+            &mut self.values,
+            &mut self.raw_values,
+            &self.activations,
+            &self.weights,
+            &self.biases,
+            nb_layers,
+            self.epsilon,
+        );
     }
 
     fn value(&self) -> Matrix {
@@ -102,7 +128,14 @@ impl Network for AutoEncoderNetwork {
         let contents = fs::read_to_string(path).expect("Loading path is invalid");
         let lines = contents.split("\n").collect::<Vec<_>>();
 
-        load_network_generics(&mut weights, &mut biases, &mut activations, &mut loss, &mut shape, lines);
+        load_network_generics(
+            &mut weights,
+            &mut biases,
+            &mut activations,
+            &mut loss,
+            &mut shape,
+            lines,
+        );
 
         let mut values = Vec::with_capacity(shape.len());
         let mut raw_values = Vec::with_capacity(shape.len());
@@ -125,9 +158,14 @@ impl Network for AutoEncoderNetwork {
     }
 
     fn save_network(&self, path: &str) {
-        let shape = self.values.iter()
-            .map(|v| DenseShape::one_d(v.h)).collect();
-        save_network_generics(path, shape, &self.activations,
-                              &self.loss, &self.weights, &self.biases);
+        let shape = self.values.iter().map(|v| DenseShape::one_d(v.h)).collect();
+        save_network_generics(
+            path,
+            shape,
+            &self.activations,
+            &self.loss,
+            &self.weights,
+            &self.biases,
+        );
     }
 }

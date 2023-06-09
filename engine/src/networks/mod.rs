@@ -1,11 +1,11 @@
-mod dense_network;
 mod auto_encoder_network;
+mod dense_network;
 mod network_operations;
 
-pub use dense_network::DenseNetwork;
 use crate::maths::Matrix;
+pub use dense_network::DenseNetwork;
 
-pub const DEFAULT_EPSILON_VALUE: f64 = 1E-6;
+pub const DEFAULT_EPSILON_VALUE: f64 = 1E-9;
 
 pub trait Network {
     fn feed_forward(&mut self, input: &Matrix);

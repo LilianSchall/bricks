@@ -25,7 +25,9 @@ pub fn dot_multithreaded(a: &Vec<f64>, b: &Vec<f64>, n: usize, k: usize, p: usiz
 
     unordered_rows.par_sort_by(|left, right| left.0.cmp(&right.0));
     let mut vec: Vec<f64> = vec![];
-    unordered_rows.iter_mut().for_each(|(_, i): &mut (usize, Vec<f64>)| vec.append(i));
+    unordered_rows
+        .iter_mut()
+        .for_each(|(_, i): &mut (usize, Vec<f64>)| vec.append(i));
     vec
 }
 

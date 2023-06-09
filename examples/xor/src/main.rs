@@ -11,8 +11,8 @@ fn main() {
     let save_exist = std::path::Path::new("xor.save").exists();
     if !save_exist {
         println!("Creating network");
-        let activations = vec![DenseActivation::Relu, DenseActivation::Tanh];
-        let shape = vec![DenseShape::one_d(2), DenseShape::one_d(3), DenseShape::one_d(1)];
+        let activations = vec![DenseActivation::Sigmoid, DenseActivation::Sigmoid];
+        let shape = vec![DenseShape::one_d(2), DenseShape::one_d(16), DenseShape::one_d(1)];
         network = DenseNetwork::new(activations, Loss::MeanSquaredError, shape, None);
     }
     else {
@@ -24,7 +24,7 @@ fn main() {
 
     let testing_data = training_data.clone();
 
-    let mut session = DenseSession::new(network, 1E-2, training_data, testing_data, 50000, Some(0.005), true);
+    let mut session = DenseSession::new(network, 1E0, training_data, testing_data, 5000, Some(0.005), true);
 
     println!("Error value: {}", if !save_exist {session.fit()} else {session.test()});
     network = session.release_network();

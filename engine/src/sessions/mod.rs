@@ -1,6 +1,6 @@
 mod dense_session;
-pub use dense_session::DenseSession;
 use crate::networks::Network;
+pub use dense_session::DenseSession;
 
 pub trait Session<T: Network> {
     fn fit(&mut self) -> f64;

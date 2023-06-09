@@ -16,9 +16,15 @@ pub struct DenseSession {
 }
 
 impl DenseSession {
-    pub fn new(network: DenseNetwork, learning_rate: f64,
-               training_data: Vec<(Matrix, Matrix)>, testing_data: Vec<(Matrix, Matrix)>,
-               epoch: usize, threshold: Option<f64>, verbose: bool) -> DenseSession {
+    pub fn new(
+        network: DenseNetwork,
+        learning_rate: f64,
+        training_data: Vec<(Matrix, Matrix)>,
+        testing_data: Vec<(Matrix, Matrix)>,
+        epoch: usize,
+        threshold: Option<f64>,
+        verbose: bool,
+    ) -> DenseSession {
         let t = threshold.unwrap_or(0.0);
         let stop_on_threshold = t == 0.0;
         DenseSession {
@@ -43,7 +49,7 @@ impl Session<DenseNetwork> for DenseSession {
     fn train(&mut self) {
         for ep in 0..self.epoch {
             let mut error_sum: f64 = 0.0;
-            let bar : ProgressBar = ProgressBar::new(self.training_data.len() as u64);
+            let bar: ProgressBar = ProgressBar::new(self.training_data.len() as u64);
             if self.verbose {
                 println!("Epoch {}:", ep);
             }
