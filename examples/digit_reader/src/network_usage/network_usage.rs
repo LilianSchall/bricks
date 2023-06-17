@@ -9,12 +9,14 @@ pub fn train_network() {
     let activations = vec![
         DenseActivation::Sigmoid,
         DenseActivation::Sigmoid,
+        DenseActivation::Sigmoid,
         DenseActivation::Softmax,
     ];
     let shape = vec![
         DenseShape::new(28, 28, 1),
         DenseShape::one_d(16),
-        DenseShape::one_d(8),
+        DenseShape::one_d(16),
+        DenseShape::one_d(16),
         DenseShape::one_d(10),
     ];
 
@@ -32,12 +34,13 @@ pub fn train_network() {
     println!("Data loaded!");
     let mut session = DenseSession::new(
         network,
-        1E0,
+        1E-1,
         training_data,
         testing_data,
-        20,
+        50,
         Some(0.005),
         true,
+        Some(100)
     );
 
     println!("Launching session fitting!");
