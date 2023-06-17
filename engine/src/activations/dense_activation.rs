@@ -41,34 +41,34 @@ impl ToString for DenseActivation {
 }
 
 impl DenseActivation {
-    pub fn apply(&self, mat: &mut Matrix, epsilon: f64) {
+    pub fn apply(&self, mat: &mut Matrix) {
         match self {
-            DenseActivation::Sigmoid => mat.map2::<f64>(sigmoid, epsilon),
-            DenseActivation::Relu => mat.map2::<f64>(relu, epsilon),
-            DenseActivation::LeakyRelu => mat.map2::<f64>(leaky_relu, epsilon),
-            DenseActivation::Softmax => softmax_matrix(mat, epsilon),
-            DenseActivation::Tanh => mat.map2::<f64>(tanh, epsilon),
+            DenseActivation::Sigmoid => mat.map(sigmoid),
+            DenseActivation::Relu => mat.map(relu),
+            DenseActivation::LeakyRelu => mat.map(leaky_relu),
+            DenseActivation::Softmax => softmax_matrix(mat),
+            DenseActivation::Tanh => mat.map(tanh),
         };
     }
 
-    pub fn derivative(&self, mat: &mut Matrix, epsilon: f64) {
+    pub fn derivative(&self, mat: &mut Matrix) {
         match self {
-            DenseActivation::Sigmoid => mat.map2::<f64>(dsigmoid, epsilon),
-            DenseActivation::Relu => mat.map2::<f64>(drelu, epsilon),
-            DenseActivation::LeakyRelu => mat.map2::<f64>(dleaky_relu, epsilon),
-            DenseActivation::Softmax => dsoftmax_matrix(mat, epsilon),
-            DenseActivation::Tanh => mat.map2::<f64>(dtanh, epsilon),
+            DenseActivation::Sigmoid => mat.map(dsigmoid),
+            DenseActivation::Relu => mat.map(drelu),
+            DenseActivation::LeakyRelu => mat.map(dleaky_relu),
+            DenseActivation::Softmax => dsoftmax_matrix(mat),
+            DenseActivation::Tanh => mat.map(dtanh),
         };
     }
 }
 
-fn softmax_matrix(mat: &mut Matrix, epsilon: f64) -> &Matrix {
+fn softmax_matrix(mat: &mut Matrix) -> &Matrix {
     mat.map(|x| x.exp());
-    mat.map3::<f64, f64>(|x, y, e| (x / y), mat.sum(), epsilon);
+    mat.map2::<f64>(|x, y| (x / y), mat.sum());
     mat
 }
 
-fn dsoftmax_matrix(mat: &mut Matrix, epsilon: f64) -> &Matrix {
+fn dsoftmax_matrix(mat: &mut Matrix) -> &Matrix {
 
     mat.map(|x| x.exp());
     let sum = mat.sum();

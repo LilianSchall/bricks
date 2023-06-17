@@ -138,6 +138,12 @@ impl Matrix {
         Matrix::reshape(result, other.w, self.h)
     }
 
+    pub fn powi(&self, other: i32) -> Matrix {
+        let mut mat = self.clone();
+        mat.map2::<i32>(|x, y| x.powi(y), other);
+        mat
+    }
+
     pub fn plus(&self, other: &Matrix) -> Matrix {
         assert_eq!(self.w, other.w);
         assert_eq!(self.h, other.h);

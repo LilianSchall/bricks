@@ -78,28 +78,23 @@ fn cross_entropy(values: &Matrix, expected: &Matrix) -> f64 {
 }
 
 fn mean_squared_error(values: &Matrix, expected: &Matrix) -> f64 {
-    let mut sum: f64 = 0.0;
-
-    for i in 0..values.len() {
-        sum += (expected.get(i) - values.get(i)).powi(2);
-    }
-
-    sum * 0.5
+    (expected - values).powi(2).sum() * 0.5
 }
 
 fn differential_categorical_cross_entropy(values: &Matrix, expected: &Matrix) -> Matrix {
-    (values - expected)
+    values - expected
 }
 
 fn differential_cross_entropy(values: &Matrix, expected: &Matrix) -> Matrix {
-    Matrix::double_mapping(|x,y| {
-        if x == 0.0 || x == 1.0 {
-            return 0.0;
-        }
-        (y - x) / (x * (x - 1.0))
-    }, values, expected)
+//    Matrix::double_mapping(|x,y| {
+//        if x == 0.0 || x == 1.0 {
+//            return 0.0;
+//        }
+//        (y - x) / (x * (x - 1.0))
+//    }, values, expected)
+    values - expected
 }
 
 fn differential_mean_squared_error(values: &Matrix, expected: &Matrix) -> Matrix {
-    (values - expected)
+    values - expected
 }

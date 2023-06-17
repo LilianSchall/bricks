@@ -1,10 +1,8 @@
+use std::borrow::Borrow;
 use crate::activations::DenseActivation;
 use crate::losses::Loss;
 use crate::maths::Matrix;
-use crate::networks::network_operations::{
-    feed_forward_generics, load_network_generics, back_propagation_generics,
-    save_network_generics, update_weights_generics,
-};
+use crate::networks::network_operations::{feed_forward_generics, load_network_generics, back_propagation_generics, save_network_generics, update_weights_generics, compute_output_delta_generics};
 use crate::networks::{Network, SupervisedNetwork, DEFAULT_EPSILON_VALUE};
 use crate::shapes::DenseShape;
 use std::fs;
@@ -57,29 +55,31 @@ impl DenseNetwork {
             epsilon: epsilon.unwrap_or(DEFAULT_EPSILON_VALUE),
         }
     }
+}
 
-    pub fn online_back_propagate(&self, output: &Matrix) -> Vec<Matrix> {
+impl SupervisedNetwork for DenseNetwork {
+    fn compute_output_delta(&self, output: &Matrix) -> Matrix {
+        compute_output_delta_generics(
+            &self.activations[self.activations.len() - 1],
+            &self.values[self.values.len() - 1],
+            &self.loss,
+            output,
+        )
+    }
+
+    fn feed_backward(&self, output_delta: Matrix) -> Vec<Matrix> {
         let mut deltas: Vec<Matrix> = Vec::with_capacity(self.nb_layers);
+        deltas.push(output_delta);
 
         back_propagation_generics(
             &mut deltas,
             &self.activations,
-            &self.values,
             &self.raw_values,
-            &self.loss,
             &self.weights,
             self.nb_layers,
-            self.epsilon,
-            output,
         );
 
         deltas
-    }
-}
-
-impl SupervisedNetwork for DenseNetwork {
-    fn feed_backward(&self, output: &Matrix) -> Vec<Matrix> {
-        self.online_back_propagate(output)
     }
 
     fn update_weights(&mut self, deltas: Vec<Matrix>, learning_rate: f64) {
@@ -90,6 +90,7 @@ impl SupervisedNetwork for DenseNetwork {
             &mut self.weights,
             &mut self.biases,
             self.nb_layers,
+            self.epsilon,
         );
     }
 }
@@ -110,12 +111,16 @@ impl Network for DenseNetwork {
             &self.weights,
             &self.biases,
             self.nb_layers,
-            self.epsilon,
         );
     }
 
     fn value(&self) -> Matrix {
         self.values[self.nb_layers - 1].clone()
+    }
+
+    fn output_shape(&self) -> (usize, usize) {
+        let borrowed_layer : &Matrix = self.values[self.values.len() - 1].borrow();
+        (borrowed_layer.w, borrowed_layer.h)
     }
 
     fn load_network(path: &str) -> DenseNetwork {
