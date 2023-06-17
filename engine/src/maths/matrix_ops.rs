@@ -1,8 +1,8 @@
-use std::ops::{Add, Mul, Sub};
 use crate::maths::matrix::Matrix;
+use std::ops::{Add, Mul, Sub};
 
 impl Add for &Matrix {
-    type Output = Option<Matrix>;
+    type Output = Matrix;
 
     fn add(self, other: &Matrix) -> Self::Output {
         self.plus(other)
@@ -42,7 +42,7 @@ impl Add<&Matrix> for f64 {
 }
 
 impl Sub for &Matrix {
-    type Output = Option<Matrix>;
+    type Output = Matrix;
 
     fn sub(self, other: &Matrix) -> Self::Output {
         self.minus(other)
@@ -82,7 +82,7 @@ impl Sub<&Matrix> for f64 {
 }
 
 impl Mul for &Matrix {
-    type Output = Option<Matrix>;
+    type Output = Matrix;
 
     fn mul(self, other: &Matrix) -> Self::Output {
         self.dot(other)

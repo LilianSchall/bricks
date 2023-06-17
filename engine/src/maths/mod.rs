@@ -1,7 +1,7 @@
-mod matrix;
 pub mod activation;
-pub mod matrix_ops;
 mod high_freq_computation;
+mod matrix;
+pub mod matrix_ops;
 
 pub use matrix::Matrix;
 

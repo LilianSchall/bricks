@@ -8,16 +8,16 @@ use bricks::shapes::DenseShape;
 fn main() {
 
     let mut network : DenseNetwork;
-    let save_exist = std::path::Path::new("xor.save").exists();
+    let save_exist = std::path::Path::new("digit_counter.save").exists();
     if !save_exist {
         println!("Creating network");
-        let activations = vec![DenseActivation::Sigmoid, DenseActivation::Sigmoid];
-        let shape = vec![DenseShape::one_d(2), DenseShape::one_d(16), DenseShape::one_d(1)];
-        network = DenseNetwork::new(activations, Loss::MeanSquaredError, shape, None);
+        let activations = vec![DenseActivation::Sigmoid, DenseActivation::Softmax];
+        let shape = vec![DenseShape::one_d(4), DenseShape::one_d(64), DenseShape::one_d(16)];
+        network = DenseNetwork::new(activations, Loss::CrossEntropy, shape, None);
     }
     else {
         println!("Loading network from save");
-        network = DenseNetwork::load_network("xor.save");
+        network = DenseNetwork::load_network("digit_counter.save");
     }
 
     let training_data = load_data("training_data.dat");
@@ -28,5 +28,5 @@ fn main() {
 
     println!("Error value: {}", if !save_exist {session.fit()} else {session.test()});
     network = session.release_network();
-    network.save_network("xor.save");
+    network.save_network("digit_counter.save");
 }
