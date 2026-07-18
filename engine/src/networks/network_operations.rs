@@ -130,7 +130,7 @@ pub fn compute_output_delta_generics(
 ) -> Matrix {
     let mut d_z = value.clone();
     activation.derivative(&mut d_z);
-    let d= loss.compute_differential_error(value, output).hadamard_dot(&d_z);
+    let d = loss.compute_differential_error(value, output).hadamard_dot(&d_z);
     d
 }
 
